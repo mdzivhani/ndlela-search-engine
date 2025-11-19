@@ -7,12 +7,12 @@ namespace SA.Tourism.Business.Infrastructure.Data
     {
         public BusinessDbContext(DbContextOptions<BusinessDbContext> options) : base(options) { }
 
-        public DbSet<Business> Businesses => Set<Business>();
+        public DbSet<Models.Business> Businesses => Set<Models.Business>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<Business>(b => {
+            modelBuilder.Entity<Models.Business>(b => {
                 b.HasKey(x => x.Id);
                 b.Property(x => x.Name).IsRequired().HasMaxLength(200);
                 b.Property(x => x.Type).HasMaxLength(100);

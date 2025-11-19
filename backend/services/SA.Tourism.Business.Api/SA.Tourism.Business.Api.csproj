@@ -5,6 +5,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.0.3" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\SA.Tourism.Business.Services\SA.Tourism.Business.Services.csproj" />
     <ProjectReference Include="..\SA.Tourism.Business.Models\SA.Tourism.Business.Models.csproj" />
     <ProjectReference Include="..\SA.Tourism.Business.Infrastructure\SA.Tourism.Business.Infrastructure.csproj" />

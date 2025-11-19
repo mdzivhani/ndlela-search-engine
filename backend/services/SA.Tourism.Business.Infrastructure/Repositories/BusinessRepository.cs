@@ -11,7 +11,7 @@ namespace SA.Tourism.Business.Infrastructure.Repositories
         private readonly BusinessDbContext _db;
         public BusinessRepository(BusinessDbContext db) { _db = db; }
 
-        public async Task<Business> AddAsync(Business business)
+        public async Task<Models.Business> AddAsync(Models.Business business)
         {
             business.Id = Guid.NewGuid();
             _db.Businesses.Add(business);
@@ -19,7 +19,7 @@ namespace SA.Tourism.Business.Infrastructure.Repositories
             return business;
         }
 
-        public async Task<Business?> GetAsync(Guid id)
+        public async Task<Models.Business?> GetAsync(Guid id)
         {
             return await _db.Businesses.AsNoTracking().FirstOrDefaultAsync(b => b.Id == id);
         }

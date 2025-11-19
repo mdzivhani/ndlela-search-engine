@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SA.Tourism.Business.Models;
 using SA.Tourism.Business.Services;
 using System;
@@ -14,7 +15,7 @@ namespace SA.Tourism.Business.Api.Controllers
 
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public async Task<ActionResult<Business>> Get(Guid id)
+        public async Task<ActionResult<Models.Business>> Get(Guid id)
         {
             var b = await _service.GetBusinessAsync(id);
             if (b == null) return NotFound();
@@ -22,8 +23,8 @@ namespace SA.Tourism.Business.Api.Controllers
         }
 
         [HttpPost]
-        [Microsoft.AspNetCore.Authorization.Authorize]
-        public async Task<ActionResult<Business>> Create([FromBody] Business business)
+        [Authorize]
+        public async Task<ActionResult<Models.Business>> Create([FromBody] Models.Business business)
         {
             var created = await _service.CreateBusinessAsync(business);
             return CreatedAtAction(nameof(Get), new { id = created.Id }, created);

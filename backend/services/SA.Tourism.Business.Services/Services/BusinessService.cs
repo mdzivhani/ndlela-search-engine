@@ -10,12 +10,12 @@ namespace SA.Tourism.Business.Services
         private readonly IBusinessRepository _repo;
         public BusinessService(IBusinessRepository repo) { _repo = repo; }
 
-        public Task<Business> CreateBusinessAsync(Business business)
+        public Task<Models.Business> CreateBusinessAsync(Models.Business business)
         {
             return _repo.AddAsync(business);
         }
 
-        public Task<Business?> GetBusinessAsync(Guid id)
+        public Task<Models.Business?> GetBusinessAsync(Guid id)
         {
             return _repo.GetAsync(id);
         }
