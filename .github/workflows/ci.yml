@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test-backend:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: [ '8.0.x' ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Install dotnet tools
+        run: dotnet tool restore --configfile backend/.config/dotnet-tools.json || true
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Run tests
+        run: dotnet test --no-build -c Release --verbosity normal
+
+  build-and-test-frontend:
+    runs-on: ubuntu-latest
+    needs: build-and-test-backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install client dependencies
+        working-directory: frontend/client
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: frontend/client
+        run: npm run test --silent
+
+  build-images:
+    runs-on: ubuntu-latest
+    needs: [ build-and-test-backend, build-and-test-frontend ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker images (no push)
+        run: |
+          docker build -f backend/services/SA.Tourism.Business.Api/Dockerfile -t satourism/business-api:ci backend/services/SA.Tourism.Business.Api
+          docker build -f backend/services/SA.Tourism.Auth.Api/Dockerfile -t satourism/auth-api:ci backend/services/SA.Tourism.Auth.Api
+          docker build -f frontend/server/Dockerfile -t satourism/express-server:ci frontend/server

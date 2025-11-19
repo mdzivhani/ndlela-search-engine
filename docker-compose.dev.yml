@@ -1,0 +1,53 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ndlela
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  adminer:
+    image: adminer
+    ports:
+      - '8080:8080'
+
+  business-api:
+    build:
+      context: ./backend/services/SA.Tourism.Business.Api
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - BUSINESS_DB_CONN=Host=postgres;Database=ndlela;Username=postgres;Password=postgres
+      - JWT_KEY=dev-secret-key-please-change
+    depends_on:
+      - postgres
+    ports:
+      - '5001:80'
+
+  auth-api:
+    build:
+      context: ./backend/services/SA.Tourism.Auth.Api
+      dockerfile: Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - JWT_KEY=dev-secret-key-please-change
+    ports:
+      - '5002:80'
+
+  express-server:
+    build:
+      context: ./frontend/server
+      dockerfile: Dockerfile
+    ports:
+      - '3001:3001'
+    depends_on:
+      - business-api
+      - auth-api
+
+volumes:
+  pgdata:

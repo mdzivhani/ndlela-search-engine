@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SA.Tourism.Business.Models\SA.Tourism.Business.Models.csproj" />
+    <ProjectReference Include="..\SA.Tourism.Business.Infrastructure\SA.Tourism.Business.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>
