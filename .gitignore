@@ -169,6 +169,7 @@ site/
 *.xlsx
 
 # ====== Project Specific ======
+instructions/        # Internal development guidelines (not versioned)
 .instructions/
 scratch/
 temp/
