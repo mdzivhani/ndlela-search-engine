@@ -23,6 +23,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - BUSINESS_DB_CONN=Host=postgres;Database=ndlela;Username=postgres;Password=postgres
       - ConnectionStrings__BusinessDb=Host=postgres;Database=ndlela;Username=postgres;Password=postgres
+      - ASPNETCORE_URLS=http://+:80
       - JWT_KEY=dev-secret-key-please-change
     depends_on:
       - postgres
@@ -35,6 +36,7 @@ services:
       dockerfile: SA.Tourism.Auth.Api/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
       - JWT_KEY=dev-secret-key-please-change
     ports:
       - '5002:80'
