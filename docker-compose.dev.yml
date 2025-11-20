@@ -24,7 +24,9 @@ services:
       - BUSINESS_DB_CONN=Host=postgres;Database=ndlela;Username=postgres;Password=postgres
       - ConnectionStrings__BusinessDb=Host=postgres;Database=ndlela;Username=postgres;Password=postgres
       - ASPNETCORE_URLS=http://+:80
-      - JWT_KEY=dev-secret-key-please-change
+      - JWT_KEY=dev-secret-key-should-be-32-characters-long!
+    volumes:
+      - dpkeys:/root/.aspnet/DataProtection-Keys
     depends_on:
       - postgres
     ports:
@@ -37,7 +39,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80
-      - JWT_KEY=dev-secret-key-please-change
+      - JWT_KEY=dev-secret-key-should-be-32-characters-long!
+    volumes:
+      - dpkeys:/root/.aspnet/DataProtection-Keys
     ports:
       - '5002:80'
 
@@ -53,3 +57,4 @@ services:
 
 volumes:
   pgdata:
+  dpkeys:
