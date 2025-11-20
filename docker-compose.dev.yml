@@ -18,8 +18,8 @@ services:
 
   business-api:
     build:
-      context: ./backend/services/SA.Tourism.Business.Api
-      dockerfile: Dockerfile
+      context: ./backend/services
+      dockerfile: SA.Tourism.Business.Api/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - BUSINESS_DB_CONN=Host=postgres;Database=ndlela;Username=postgres;Password=postgres
@@ -31,8 +31,8 @@ services:
 
   auth-api:
     build:
-      context: ./backend/services/SA.Tourism.Auth.Api
-      dockerfile: Dockerfile
+      context: ./backend/services
+      dockerfile: SA.Tourism.Auth.Api/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - JWT_KEY=dev-secret-key-please-change
