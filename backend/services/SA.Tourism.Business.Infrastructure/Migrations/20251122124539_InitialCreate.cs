@@ -21,7 +21,8 @@ namespace SA.Tourism.Business.Infrastructure.Migrations
                     RegionCode = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
                     Latitude = table.Column<double>(type: "double precision", nullable: true),
-                    Longitude = table.Column<double>(type: "double precision", nullable: true)
+                    Longitude = table.Column<double>(type: "double precision", nullable: true),
+                    StarRating = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
