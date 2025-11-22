@@ -1,79 +1,8 @@
 const express = require('express');
 const router = express.Router();
 
-// Mock data for development
-const mockSearchResults = [
-  {
-    id: '1',
-    name: 'Kruger Game Lodge',
-    description: 'Luxury safari lodge offering guided game drives and accommodation.',
-    category: 'Accommodation',
-    rating: 4.8
-  },
-  {
-    id: '2',
-    name: 'Table Mountain Tours',
-    description: 'Guided hiking and cable car tours with stunning views.',
-    category: 'Tours',
-    rating: 4.9
-  },
-  {
-    id: '3',
-    name: 'Cape Town Spa & Wellness',
-    description: 'Full-service spa with traditional African treatments.',
-    category: 'Wellness',
-    rating: 4.7
-  },
-  {
-    id: '4',
-    name: 'Winelands Wine Tasting',
-    description: 'Premium wine tasting experiences in Stellenbosch.',
-    category: 'Food & Drink',
-    rating: 4.6
-  },
-  {
-    id: '5',
-    name: 'Garden Route Adventure Park',
-    description: 'Outdoor activities including zip-lining, hiking, and rock climbing.',
-    category: 'Activities',
-    rating: 4.5
-  },
-  {
-    id: '6',
-    name: 'East London Beach Resort',
-    description: 'Beachfront resort with water sports and entertainment.',
-    category: 'Accommodation',
-    rating: 4.4
-  },
-  {
-    id: '7',
-    name: 'Durban Aquarium & Museum',
-    description: 'Interactive aquarium and cultural museum experiences.',
-    category: 'Attractions',
-    rating: 4.6
-  },
-  {
-    id: '8',
-    name: 'Knysna Oyster Farm Tour',
-    description: 'Oyster farming demonstrations and seafood restaurants.',
-    category: 'Food & Drink',
-    rating: 4.7
-  },
-  {
-    id: '9',
-    name: 'Mpumalanga Hiking Trail',
-    description: 'Multi-day hiking expeditions through Drakensberg Mountains.',
-    category: 'Tours',
-    rating: 4.8
-  },
-  {
-    id: '10',
-    name: 'Johannesburg Arts District',
-    description: 'Gallery tours, street art, and cultural performances.',
-    category: 'Attractions',
-    rating: 4.5
-  }
-];
+// Configuration for backend Search API
+const SEARCH_API_URL = process.env.SEARCH_API_URL || 'http://localhost:5003';
 
 // Verify token middleware
 function verifyToken(req, res, next) {
@@ -84,55 +13,86 @@ function verifyToken(req, res, next) {
   next();
 }
 
-// Search endpoint
+// Search endpoint - proxies to backend Search API
 router.get('/', verifyToken, async (req, res) => {
   try {
-    const q = (req.query.q || '').toLowerCase();
+    const q = req.query.q || '';
+    const region = req.query.region || '';
+    const minStars = req.query.minStars || '';
     const limit = parseInt(req.query.limit) || 10;
     const offset = parseInt(req.query.offset) || 0;
 
-    let results = mockSearchResults;
+    // Build query params for Search API
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    if (region) params.set('region', region);
+    if (minStars) params.set('minStars', minStars);
 
-    // Filter by query
-    if (q) {
-      results = results.filter(
-        (item) =>
-          item.name.toLowerCase().includes(q) ||
-          item.description.toLowerCase().includes(q) ||
-          item.category.toLowerCase().includes(q)
-      );
+    // Call backend Search API
+    const response = await fetch(`${SEARCH_API_URL}/api/search?${params.toString()}`);
+    
+    if (!response.ok) {
+      console.error('Search API error:', response.status, response.statusText);
+      return res.status(response.status).json({ message: 'Search API error' });
     }
 
-    // Apply pagination
+    const businesses = await response.json();
+
+    // Transform backend response to frontend format
+    const results = (businesses || []).map(b => ({
+      id: b.id,
+      name: b.name,
+      description: b.description || '',
+      category: b.type || 'General',
+      rating: (b.starRating || 0) / 1.0  // Convert to decimal if needed
+    }));
+
+    // Apply pagination on frontend
     const total = results.length;
-    results = results.slice(offset, offset + limit);
+    const paginatedResults = results.slice(offset, offset + limit);
 
     return res.json({
       query: q || '*',
       total,
-      results
+      results: paginatedResults
     });
   } catch (error) {
     console.error('Search error:', error);
-    return res.status(500).json({ message: 'Search failed' });
+    return res.status(500).json({ message: 'Search failed', error: error.message });
   }
 });
 
-// Search by category endpoint
+// Search by category endpoint - uses type filter
 router.get('/category', verifyToken, async (req, res) => {
   try {
-    const category = (req.query.category || '').toLowerCase();
+    const category = req.query.category || '';
     const limit = parseInt(req.query.limit) || 10;
 
     if (!category) {
       return res.status(400).json({ message: 'Category parameter required' });
     }
 
-    let results = mockSearchResults.filter(
-      (item) => item.category.toLowerCase().includes(category)
-    );
+    // Call backend Search API with category as query
+    const response = await fetch(`${SEARCH_API_URL}/api/search?q=${encodeURIComponent(category)}`);
+    
+    if (!response.ok) {
+      console.error('Category search API error:', response.status, response.statusText);
+      return res.status(response.status).json({ message: 'Category search API error' });
+    }
 
-    results = results.slice(0, limit);
+    const businesses = await response.json();
+
+    // Transform and filter by category/type
+    const results = (businesses || [])
+      .filter(b => (b.type || '').toLowerCase().includes(category.toLowerCase()))
+      .map(b => ({
+        id: b.id,
+        name: b.name,
+        description: b.description || '',
+        category: b.type || 'General',
+        rating: (b.starRating || 0) / 1.0
+      }))
+      .slice(0, limit);
 
     return res.json({
       query: category,
@@ -141,7 +101,7 @@ router.get('/category', verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Category search error:', error);
-    return res.status(500).json({ message: 'Category search failed' });
+    return res.status(500).json({ message: 'Category search failed', error: error.message });
   }
 });
 
