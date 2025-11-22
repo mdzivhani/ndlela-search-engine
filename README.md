@@ -53,12 +53,37 @@ Ndlela Search Engine
 - Docker & Docker Compose (optional, for containerized deployment)
 - Git (for version control)
 
-### Frontend Setup
+### Frontend Development (Recommended)
+Start both the Vite dev server and Express proxy server together:
+```bash
+# Install all dependencies
+npm run install:all
+
+# Start both frontend client and server
+npm run dev
+```
+
+This will start:
+- Express server on `http://localhost:3001` (API endpoints)
+- Vite dev server on `http://localhost:5173` (React app with proxy to Express)
+
+### Alternative: Start Services Individually
+
+**Frontend Client Only:**
 ```bash
 cd frontend/client
 npm install
 npm run dev          # Start Vite dev server on http://localhost:5173
 ```
+
+**Express Proxy Server Only:**
+```bash
+cd frontend/server
+npm install
+npm run dev          # Start on http://localhost:3001
+```
+
+**Note:** The Vite dev server requires the Express server to be running on port 3001 to proxy API requests. If you see proxy errors like `ECONNREFUSED`, ensure the Express server is running.
 
 ### Backend Setup
 ```bash
@@ -67,13 +92,6 @@ dotnet restore
 dotnet build
 dotnet test
 dotnet run --project services/SA.Tourism.Search.Api/SA.Tourism.Search.Api.csproj
-```
-
-### Express Proxy Server
-```bash
-cd frontend/server
-npm install
-npm run dev          # Start on http://localhost:3001
 ```
 
 ## 📁 Project Structure
