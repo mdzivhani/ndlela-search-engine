@@ -15,10 +15,14 @@ A modern React + TypeScript + Vite frontend for the South African national touri
 
 ### Recommended: Single Command
 ```bash
-# Install dependencies first (if not already done)
+# From the repository root:
+cd frontend/client
 npm install
-cd ../server && npm install && cd ../client
 
+cd ../server
+npm install
+
+cd ../client
 # Start both Express server and Vite client
 npm run dev
 ```
