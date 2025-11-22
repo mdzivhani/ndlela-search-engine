@@ -17,11 +17,10 @@ const DefaultIcon = new Icon({
 
 interface MapViewProps {
   results: SearchResult[]
-  selectedResult?: SearchResult | null
   onMarkerClick?: (result: SearchResult) => void
 }
 
-export default function MapView({ results, selectedResult, onMarkerClick }: MapViewProps) {
+export default function MapView({ results, onMarkerClick }: MapViewProps) {
   // Calculate center based on results with locations
   const resultsWithLocation = results.filter(r => r.location)
   
@@ -44,7 +43,7 @@ export default function MapView({ results, selectedResult, onMarkerClick }: MapV
     <MapContainer
       center={center}
       zoom={6}
-      style={{ height: '500px', width: '100%', borderRadius: '8px' }}
+      className="map-container"
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

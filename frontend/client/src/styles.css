@@ -613,6 +613,12 @@ body {
   font-family: inherit;
 }
 
+.map-container {
+  height: 500px;
+  width: 100%;
+  border-radius: var(--border-radius);
+}
+
 .leaflet-popup-content-wrapper {
   border-radius: var(--border-radius);
 }

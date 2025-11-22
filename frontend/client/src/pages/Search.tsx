@@ -98,7 +98,6 @@ export default function Search() {
               ) : viewMode === 'map' ? (
                 <MapView
                   results={results.results}
-                  selectedResult={selectedBusiness}
                   onMarkerClick={setSelectedBusiness}
                 />
               ) : (
