@@ -54,32 +54,32 @@ export default function MapView({ results, onMarkerClick }: MapViewProps) {
         if (!result.location) return null
         const { lat, lng } = result.location
         return (
-        <Marker
-          key={result.id}
-          position={[lat, lng]}
-          icon={DefaultIcon}
-          eventHandlers={{
-            click: () => onMarkerClick?.(result)
-          }}
-        >
-          <Popup>
-            <div className="map-popup">
-              <h3 className="map-popup-title">{result.name}</h3>
-              <p className="map-popup-description">
-                {result.description}
-              </p>
-              <div className="map-popup-rating">
-                <strong>Rating:</strong> ★ {result.rating.toFixed(1)}
+          <Marker
+            key={result.id}
+            position={[lat, lng]}
+            icon={DefaultIcon}
+            eventHandlers={{
+              click: () => onMarkerClick?.(result)
+            }}
+          >
+            <Popup>
+              <div className="map-popup">
+                <h3 className="map-popup-title">{result.name}</h3>
+                <p className="map-popup-description">
+                  {result.description}
+                </p>
+                <div className="map-popup-rating">
+                  <strong>Rating:</strong> ★ {result.rating.toFixed(1)}
+                </div>
+                <div className="map-popup-category">
+                  <strong>Category:</strong> {result.category}
+                </div>
+                <div className="map-popup-address">
+                  {result.location.address}, {result.location.city}
+                </div>
               </div>
-              <div className="map-popup-category">
-                <strong>Category:</strong> {result.category}
-              </div>
-              <div className="map-popup-address">
-                {result.location.address}, {result.location.city}
-              </div>
-            </div>
-          </Popup>
-        </Marker>
+            </Popup>
+          </Marker>
         )
       })}
     </MapContainer>
