@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import { Icon } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -52,6 +52,7 @@ export default function MapView({ results, selectedResult, onMarkerClick }: MapV
       />
       
       {resultsWithLocation.map((result) => {
+        if (!result.location) return null
         const { lat, lng } = result.location
         return (
         <Marker
@@ -63,19 +64,19 @@ export default function MapView({ results, selectedResult, onMarkerClick }: MapV
           }}
         >
           <Popup>
-            <div style={{ minWidth: '200px' }}>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '16px' }}>{result.name}</h3>
-              <p style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#666' }}>
+            <div className="map-popup">
+              <h3 className="map-popup-title">{result.name}</h3>
+              <p className="map-popup-description">
                 {result.description}
               </p>
-              <div style={{ marginBottom: '8px' }}>
+              <div className="map-popup-rating">
                 <strong>Rating:</strong> ★ {result.rating.toFixed(1)}
               </div>
-              <div style={{ marginBottom: '8px' }}>
+              <div className="map-popup-category">
                 <strong>Category:</strong> {result.category}
               </div>
-              <div style={{ fontSize: '12px', color: '#888' }}>
-                {result.location?.address}, {result.location?.city}
+              <div className="map-popup-address">
+                {result.location.address}, {result.location.city}
               </div>
             </div>
           </Popup>

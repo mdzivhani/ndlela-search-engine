@@ -621,6 +621,32 @@ body {
   margin: 1rem;
 }
 
+/* Map popup styles */
+.map-popup {
+  min-width: 200px;
+}
+
+.map-popup-title {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.map-popup-description {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: var(--gray-600);
+}
+
+.map-popup-rating,
+.map-popup-category {
+  margin-bottom: 8px;
+}
+
+.map-popup-address {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
 /* Clickable result items */
 .clickable-result {
   cursor: pointer;

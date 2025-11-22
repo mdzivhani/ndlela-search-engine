@@ -190,7 +190,7 @@ export interface SearchResult {
 {
   "react-leaflet": "^5.0.0",
   "leaflet": "^1.9.4",
-  "@types/leaflet": "^1.9.8"
+  "@types/leaflet": "^1.9.21"
 }
 ```
 
