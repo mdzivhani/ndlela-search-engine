@@ -1,0 +1,22 @@
+{
+  "name": "ndlela-search-engine",
+  "version": "1.0.0",
+  "description": "Ndlela Search Engine - A comprehensive South African national tourism platform",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd frontend/server && npm run dev",
+    "dev:client": "cd frontend/client && npm run dev",
+    "install:all": "npm install && cd frontend/server && npm install && cd ../client && npm install",
+    "build": "cd frontend/client && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mdzivhani/ndlela-search-engine.git"
+  },
+  "author": "",
+  "license": "ISC"
+}
