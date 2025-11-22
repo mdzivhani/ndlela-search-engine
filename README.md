@@ -55,9 +55,28 @@ Ndlela Search Engine
 
 ### Frontend Setup
 ```bash
+# Install dependencies for both client and server
 cd frontend/client
 npm install
-npm run dev          # Start Vite dev server on http://localhost:5173
+cd ../server
+npm install
+
+# Start both Express server and Vite client concurrently
+cd ../client
+npm run dev          # Starts both servers: Express (3001) and Vite (5173)
+```
+
+**Note**: The `npm run dev` command now starts both the Express proxy server (port 3001) and the Vite dev server (port 5173) concurrently. This prevents the `ECONNREFUSED` proxy errors.
+
+**Alternative**: Run servers separately in two terminals:
+```bash
+# Terminal 1 - Express Server
+cd frontend/server
+npm run dev          # Port 3001
+
+# Terminal 2 - Vite Client
+cd frontend/client
+npm run dev:client   # Port 5173
 ```
 
 ### Backend Setup
@@ -67,13 +86,6 @@ dotnet restore
 dotnet build
 dotnet test
 dotnet run --project services/SA.Tourism.Search.Api/SA.Tourism.Search.Api.csproj
-```
-
-### Express Proxy Server
-```bash
-cd frontend/server
-npm install
-npm run dev          # Start on http://localhost:3001
 ```
 
 ## 📁 Project Structure
