@@ -1,39 +1,115 @@
 using SA.Tourism.Search.Models;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 
 namespace SA.Tourism.Search.Services
 {
-    // Simple in-memory index for development and tests. Replace with OpenSearch/Elasticsearch for production.
+    // Enhanced search service that queries the Business API for data
     public class SearchService : ISearchService
     {
-        private readonly ConcurrentDictionary<System.Guid, BusinessIndexItem> _index = new();
+        private readonly HttpClient? _httpClient;
+        private readonly string? _businessApiUrl;
 
-        public Task IndexAsync(BusinessIndexItem item)
+        public SearchService(IHttpClientFactory? httpClientFactory = null)
         {
-            _index[item.Id] = item;
-            return Task.CompletedTask;
-        }
-
-        public Task SeedAsync(IEnumerable<BusinessIndexItem> items)
-        {
-            foreach (var it in items) _index[it.Id] = it;
-            return Task.CompletedTask;
-        }
-
-        public Task<IEnumerable<BusinessIndexItem>> SearchAsync(string query, string? region = null, int? minStars = null)
-        {
-            var q = (query ?? string.Empty).Trim().ToLowerInvariant();
-            var results = _index.Values.AsEnumerable();
-            if (!string.IsNullOrEmpty(q))
+            if (httpClientFactory != null)
             {
-                results = results.Where(b => b.Name.ToLowerInvariant().Contains(q) || (b.Description ?? string.Empty).ToLowerInvariant().Contains(q));
+                _httpClient = httpClientFactory.CreateClient("BusinessApi");
+                _businessApiUrl = null; // URL should be configured in HttpClient
             }
-            if (!string.IsNullOrEmpty(region)) results = results.Where(b => b.RegionCode == region);
-            if (minStars.HasValue) results = results.Where(b => (b.StarRating ?? 0) >= minStars.Value);
-            return Task.FromResult(results.OrderByDescending(b => b.StarRating).ThenBy(b => b.Name).AsEnumerable());
+        }
+
+        public async Task IndexAsync(BusinessIndexItem item)
+        {
+            // For now, this is a no-op as we're reading from Business API
+            // In production, this would index to OpenSearch/Elasticsearch
+            await Task.CompletedTask;
+        }
+
+        public async Task SeedAsync(IEnumerable<BusinessIndexItem> items)
+        {
+            // For now, this is a no-op as we're reading from Business API
+            // In production, this would bulk index to OpenSearch/Elasticsearch
+            await Task.CompletedTask;
+        }
+
+        public async Task<IEnumerable<BusinessIndexItem>> SearchAsync(string query, string? region = null, int? minStars = null)
+        {
+            // If HttpClient is not configured, return empty results
+            if (_httpClient == null)
+            {
+                return Enumerable.Empty<BusinessIndexItem>();
+            }
+
+            try
+            {
+                // Fetch all businesses from Business API
+                var businesses = await _httpClient.GetFromJsonAsync<IEnumerable<BusinessDto>>("api/business");
+                
+                if (businesses == null)
+                {
+                    return Enumerable.Empty<BusinessIndexItem>();
+                }
+
+                // Convert to BusinessIndexItem
+                var indexItems = businesses.Select(b => new BusinessIndexItem
+                {
+                    Id = b.Id,
+                    Name = b.Name,
+                    Type = b.Type,
+                    RegionCode = b.RegionCode,
+                    Description = b.Description,
+                    Latitude = b.Latitude,
+                    Longitude = b.Longitude,
+                    StarRating = b.StarRating
+                });
+
+                // Apply search filters
+                var q = (query ?? string.Empty).Trim().ToLowerInvariant();
+                var results = indexItems.AsEnumerable();
+
+                if (!string.IsNullOrEmpty(q))
+                {
+                    results = results.Where(b => 
+                        b.Name.ToLowerInvariant().Contains(q) || 
+                        (b.Description ?? string.Empty).ToLowerInvariant().Contains(q) ||
+                        (b.Type ?? string.Empty).ToLowerInvariant().Contains(q)
+                    );
+                }
+
+                if (!string.IsNullOrEmpty(region))
+                {
+                    results = results.Where(b => b.RegionCode == region);
+                }
+
+                if (minStars.HasValue)
+                {
+                    results = results.Where(b => (b.StarRating ?? 0) >= minStars.Value);
+                }
+
+                return results.OrderByDescending(b => b.StarRating).ThenBy(b => b.Name).ToList();
+            }
+            catch
+            {
+                // Log error in production
+                return Enumerable.Empty<BusinessIndexItem>();
+            }
+        }
+
+        // DTO to match Business API response
+        private class BusinessDto
+        {
+            public System.Guid Id { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public string Type { get; set; } = string.Empty;
+            public string RegionCode { get; set; } = string.Empty;
+            public string? Description { get; set; }
+            public double? Latitude { get; set; }
+            public double? Longitude { get; set; }
+            public int? StarRating { get; set; }
         }
     }
 }

@@ -1,6 +1,7 @@
 using SA.Tourism.Business.Models;
 using SA.Tourism.Business.Infrastructure.Repositories;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SA.Tourism.Business.Services
@@ -18,6 +19,11 @@ namespace SA.Tourism.Business.Services
         public Task<Models.Business?> GetBusinessAsync(Guid id)
         {
             return _repo.GetAsync(id);
+        }
+
+        public Task<IEnumerable<Models.Business>> GetAllBusinessesAsync()
+        {
+            return _repo.GetAllAsync();
         }
     }
 }
