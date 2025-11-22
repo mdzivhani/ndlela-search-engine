@@ -51,10 +51,12 @@ export default function MapView({ results, selectedResult, onMarkerClick }: MapV
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       
-      {resultsWithLocation.map((result) => (
+      {resultsWithLocation.map((result) => {
+        const { lat, lng } = result.location
+        return (
         <Marker
           key={result.id}
-          position={[result.location!.lat, result.location!.lng]}
+          position={[lat, lng]}
           icon={DefaultIcon}
           eventHandlers={{
             click: () => onMarkerClick?.(result)
@@ -78,7 +80,8 @@ export default function MapView({ results, selectedResult, onMarkerClick }: MapV
             </div>
           </Popup>
         </Marker>
-      ))}
+        )
+      })}
     </MapContainer>
   )
 }

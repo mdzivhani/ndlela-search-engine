@@ -106,9 +106,8 @@ export default function Search() {
                   {results.results.map((result) => (
                     <li
                       key={result.id}
-                      className="result-item"
+                      className="result-item clickable-result"
                       onClick={() => setSelectedBusiness(result)}
-                      style={{ cursor: 'pointer' }}
                     >
                       <div className="result-header">
                         <h3>{result.name}</h3>

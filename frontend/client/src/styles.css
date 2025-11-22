@@ -620,3 +620,8 @@ body {
 .leaflet-popup-content {
   margin: 1rem;
 }
+
+/* Clickable result items */
+.clickable-result {
+  cursor: pointer;
+}
