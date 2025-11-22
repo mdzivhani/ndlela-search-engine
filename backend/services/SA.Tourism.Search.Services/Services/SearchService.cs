@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Http;
 
 namespace SA.Tourism.Search.Services
 {
@@ -93,9 +92,12 @@ namespace SA.Tourism.Search.Services
 
                 return results.OrderByDescending(b => b.StarRating).ThenBy(b => b.Name).ToList();
             }
-            catch
+            catch (System.Exception ex)
             {
                 // Log error in production
+                // For now, return empty results to prevent application crashes
+                // TODO: Add proper logging framework (e.g., ILogger)
+                System.Console.WriteLine($"Search error: {ex.Message}");
                 return Enumerable.Empty<BusinessIndexItem>();
             }
         }
