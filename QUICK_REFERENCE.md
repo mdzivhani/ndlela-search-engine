@@ -2,17 +2,26 @@
 
 ## 🚀 Running the System
 
-### Start Terminal 1 - Express Server
+### Quick Start (Recommended)
+```bash
+# Single command to start both servers
+cd frontend/client
+npm run dev
+# Output: Both Express (3001) and Vite (5173) servers start
+```
+
+### Alternative: Separate Terminals
+**Terminal 1 - Express Server**
 ```powershell
 cd frontend/server
 npm run dev
 # Output: Server listening on 3001
 ```
 
-### Start Terminal 2 - Vite Client
+**Terminal 2 - Vite Client**
 ```powershell
 cd frontend/client
-npm run dev
+npm run dev:client
 # Output: VITE ready at http://localhost:5173/
 ```
 
@@ -185,6 +194,17 @@ try {
 
 ## 🚨 Troubleshooting Quick Fixes
 
+### ECONNREFUSED / Proxy Errors
+```bash
+# Solution: Use the unified dev script
+cd frontend/client
+npm run dev    # Starts both Express and Vite servers
+
+# Or ensure Express server is running before Vite:
+# Terminal 1: cd frontend/server && npm run dev
+# Terminal 2: cd frontend/client && npm run dev:client
+```
+
 ### Port in Use
 ```powershell
 # Kill process on port
@@ -206,10 +226,11 @@ npx tsc --noEmit
 ```
 
 ### API Connection Failed
-1. Check Express server running
-2. Check browser console
-3. Verify authorization header
-4. Check network tab
+1. Ensure both servers are running: `npm run dev` in frontend/client
+2. Check Express server is listening on port 3001
+3. Check browser console for errors
+4. Verify authorization header in network tab
+5. Check Vite proxy configuration in vite.config.ts
 
 ## 🔗 Important Links
 

@@ -13,13 +13,50 @@ A modern React + TypeScript + Vite frontend for the South African national touri
 
 ## Quick Start
 
-```powershell
-cd frontend/client
+### Recommended: Single Command
+```bash
+# Install dependencies first (if not already done)
+npm install
+cd ../server && npm install && cd ../client
+
+# Start both Express server and Vite client
+npm run dev
+```
+
+This runs both servers concurrently:
+- **Express Server**: http://localhost:3001
+- **Vite Dev Server**: http://localhost:5173
+
+### Alternative: Separate Terminals
+
+**Terminal 1 - Express Server:**
+```bash
+cd frontend/server
 npm install
 npm run dev
 ```
 
-The Vite dev server proxies `/api` to `http://localhost:3001` (Express server).
+**Terminal 2 - Vite Client:**
+```bash
+cd frontend/client
+npm install
+npm run dev:client
+```
+
+## Scripts
+
+- `npm run dev` - Start both Express and Vite servers concurrently (recommended)
+- `npm run dev:client` - Start only Vite dev server
+- `npm run dev:server` - Start only Express server (from client directory)
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run test` - Run tests with Vitest
+
+## Important: Proxy Configuration
+
+The Vite dev server proxies `/api` requests to `http://localhost:3001` (Express server).
+**The Express server must be running for API calls to work.** This is why we use `concurrently` 
+to start both servers together.
 
 ## Available Routes
 
