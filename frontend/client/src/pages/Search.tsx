@@ -1,7 +1,9 @@
 import React, { useState, useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { performSearch } from '../services/search.service'
-import { SearchResponse } from '../types/search'
+import { SearchResponse, SearchResult } from '../types/search'
+import MapView from '../components/MapView'
+import BusinessDetails from '../components/BusinessDetails'
 
 export default function Search() {
   const { user, logout } = useAuth()
@@ -9,6 +11,8 @@ export default function Search() {
   const [results, setResults] = useState<SearchResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
+  const [selectedBusiness, setSelectedBusiness] = useState<SearchResult | null>(null)
 
   const handleSearch = useCallback(
     async (e: React.FormEvent) => {
@@ -68,28 +72,73 @@ export default function Search() {
         {error && <div className="error-message">{error}</div>}
 
         {results && (
-          <div className="search-results">
-            <h2>
-              Results for "{results.query}" ({results.total} found)
-            </h2>
+          <>
+            <div className="view-toggle">
+              <button
+                className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+                onClick={() => setViewMode('list')}
+              >
+                📋 List View
+              </button>
+              <button
+                className={`toggle-btn ${viewMode === 'map' ? 'active' : ''}`}
+                onClick={() => setViewMode('map')}
+              >
+                🗺️ Map View
+              </button>
+            </div>
 
-            {results.results.length === 0 ? (
-              <p className="no-results">No results found. Try a different search term.</p>
-            ) : (
-              <ul className="results-list">
-                {results.results.map((result) => (
-                  <li key={result.id} className="result-item">
-                    <div className="result-header">
-                      <h3>{result.name}</h3>
-                      <span className="result-rating">★ {result.rating.toFixed(1)}</span>
-                    </div>
-                    <p className="result-description">{result.description}</p>
-                    <span className="result-category">{result.category}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+            <div className="search-results">
+              <h2>
+                Results for "{results.query}" ({results.total} found)
+              </h2>
+
+              {results.results.length === 0 ? (
+                <p className="no-results">No results found. Try a different search term.</p>
+              ) : viewMode === 'map' ? (
+                <MapView
+                  results={results.results}
+                  selectedResult={selectedBusiness}
+                  onMarkerClick={setSelectedBusiness}
+                />
+              ) : (
+                <ul className="results-list">
+                  {results.results.map((result) => (
+                    <li
+                      key={result.id}
+                      className="result-item"
+                      onClick={() => setSelectedBusiness(result)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div className="result-header">
+                        <h3>{result.name}</h3>
+                        <span className="result-rating">★ {result.rating.toFixed(1)}</span>
+                      </div>
+                      <p className="result-description">{result.description}</p>
+                      <div className="result-footer">
+                        <span className="result-category">{result.category}</span>
+                        {result.location && (
+                          <span className="result-location">
+                            📍 {result.location.city}, {result.location.province}
+                          </span>
+                        )}
+                      </div>
+                      {result.amenities && result.amenities.length > 0 && (
+                        <div className="result-tags">
+                          {result.amenities.slice(0, 3).map((amenity, idx) => (
+                            <span key={idx} className="mini-tag">{amenity}</span>
+                          ))}
+                          {result.amenities.length > 3 && (
+                            <span className="mini-tag">+{result.amenities.length - 3} more</span>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </>
         )}
 
         {!results && !error && (
@@ -98,6 +147,13 @@ export default function Search() {
           </div>
         )}
       </main>
+
+      {selectedBusiness && (
+        <BusinessDetails
+          result={selectedBusiness}
+          onClose={() => setSelectedBusiness(null)}
+        />
+      )}
     </div>
   )
 }
