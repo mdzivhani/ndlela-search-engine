@@ -1,10 +1,12 @@
 import React, { useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { performSearch } from '../services/search.service'
 import { SearchResponse } from '../types/search'
 
 export default function Search() {
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -78,7 +80,12 @@ export default function Search() {
             ) : (
               <ul className="results-list">
                 {results.results.map((result) => (
-                  <li key={result.id} className="result-item">
+                  <li 
+                    key={result.id} 
+                    className="result-item"
+                    onClick={() => navigate(`/business/${result.id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <div className="result-header">
                       <h3>{result.name}</h3>
                       <span className="result-rating">★ {result.rating.toFixed(1)}</span>

@@ -6,6 +6,7 @@ import App from './App'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Search from './pages/Search'
+import BusinessDetail from './pages/BusinessDetail'
 import ProtectedRoute from './components/ProtectedRoute'
 import './styles.css'
 
@@ -23,6 +24,14 @@ createRoot(document.getElementById('root')!).render(
               element={
                 <ProtectedRoute>
                   <Search />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path='business/:id'
+              element={
+                <ProtectedRoute>
+                  <BusinessDetail />
                 </ProtectedRoute>
               }
             />
