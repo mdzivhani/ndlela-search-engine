@@ -114,7 +114,16 @@ export default function Search() {
           <h1>Ndlela Search</h1>
           <div className="user-info">
             <button onClick={() => navigate('/profile')} className="btn-profile">
-              {user?.name}
+              <span className="header-avatar-wrapper">
+                {user?.profilePicture ? (
+                  <img src={user.profilePicture} alt="avatar" className="avatar-image avatar-small" />
+                ) : (
+                  <span className="avatar avatar-small avatar-placeholder">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </span>
+              <span className="header-username">{user?.name}</span>
             </button>
             <button onClick={logout} className="btn-logout">
               Logout

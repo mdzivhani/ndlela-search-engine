@@ -1486,3 +1486,17 @@ body {
     width: 100%;
   }
 }
+
+/* Avatar Styles */
+.avatar-wrapper { display:flex; flex-direction:column; align-items:flex-start; gap:0.5rem; }
+.avatar { width:80px; height:80px; border-radius:50%; background: var(--primary-color); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.75rem; font-weight:600; overflow:hidden; position:relative; }
+.avatar-large { width:80px; height:80px; }
+.avatar-small { width:32px; height:32px; font-size:0.875rem; }
+.avatar-placeholder { background: var(--primary-dark); box-shadow: inset 0 0 0 2px rgba(255,255,255,0.15); }
+.avatar-image { width:100%; height:100%; object-fit:cover; }
+.avatar-initial { user-select:none; }
+.avatar-actions { display:flex; gap:0.5rem; flex-wrap:wrap; }
+.avatar-error { margin-top:0.25rem; }
+.profile-avatar-section { margin-bottom:1.5rem; }
+.header-avatar-wrapper { display:inline-flex; margin-right:0.5rem; }
+.header-username { vertical-align:middle; }

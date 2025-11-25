@@ -1,67 +1,46 @@
 # 📚 Documentation Index - Ndlela Search Engine
+# Documentation Index (Consolidated)
 
-Complete guide to all documentation in the repository.
+The documentation has been consolidated to reduce duplication. Use this table of contents to navigate.
 
-## 🎯 Start Here
+| Area | Document | Description |
+|------|----------|-------------|
+| Overview | README.md | High-level overview & quick start |
+| Setup | docs/SETUP_GUIDE.md | Environment, prerequisites, configuration, Docker |
+| Implementation | docs/IMPLEMENTATION_GUIDE.md | System architecture & cross-cutting concerns |
+| Frontend | docs/FRONTEND_GUIDE.md | Frontend structure, components, patterns, filter panel |
+| Backend | docs/BACKEND_GUIDE.md | Backend services, structure, guidelines |
+| Testing | docs/TESTING_GUIDE.md | Testing strategy, coverage, tooling |
+| Git & Workflow | docs/GIT_AND_WORKFLOW.md | Branching, protection, workflow & common commands |
+| Quick Reference | docs/QUICK_REFERENCE.md | Cheat sheet & frequently used commands |
+| Standards | docs/API-CONTRACTS.md | API contracts & supporting standards (see other *-STANDARDS.md) |
 
-**First time?** Read in this order:
+## Supporting Standards (unchanged)
+Located in `docs/`:
+- SECURITY-STANDARDS.md
+- OBSERVABILITY-STANDARDS.md
+- DOCUMENTATION-STANDARDS.md
+- ENVIRONMENT-STANDARDS.md
+- DATABASE-STANDARDS.md
+- BACKEND-STANDARDS.md
+- FRONTEND-STANDARDS.md
+- PIPELINE-GUIDE.md
+- PROJECT-GUIDE.md
 
-1. **README.md** - Project overview (5 min read)
-2. **QUICK_REFERENCE.md** - Quick start guide (3 min read)
-3. **GIT_WORKFLOW.md** - Git workflow guide (10 min read)
-4. **GIT_COMMAND_REFERENCE.md** - Copy-paste commands (reference)
+## Development Guidelines (instructions/)
+Remain available for deeper standards and practices:
+- frontend-guidelines.md
+- backend-guidelines.md
+- project-structure.md
+- naming-conventions.md
+- testing-practices.md
+- code-review-guidelines.md
+- configuration-management.md
+- git-workflow.md
+- documentation-style.md
 
-## 📖 Project Documentation
-
-### Getting Started
-| Document | Purpose | Read Time |
-|----------|---------|-----------|
-| **README.md** | Complete project overview, features, architecture | 10 min |
-| **QUICK_REFERENCE.md** | One-page quick start and reference | 3 min |
-| **frontend/client/README.md** | React frontend setup and usage | 5 min |
-| **frontend/server/README.md** | Express proxy server documentation | 5 min |
-| **backend/README.md** | .NET backend services overview | 5 min |
-
-### Development Guides
-| Document | Purpose | Read Time |
-|----------|---------|-----------|
-| **GIT_WORKFLOW.md** | Complete git branching strategy and workflow | 15 min |
-| **GIT_COMMAND_REFERENCE.md** | Copy-paste git commands for all operations | 5 min (ref) |
-| **BRANCH_PROTECTION_SETUP.md** | Setting up GitHub branch protection rules | 10 min |
-| **WORKFLOW_SETUP_COMPLETE.md** | Setup verification and next steps | 5 min |
-
-### Implementation Details
-| Document | Purpose | Read Time |
-|----------|---------|-----------|
-| **FRONTEND_IMPLEMENTATION.md** | Detailed React frontend architecture | 10 min |
-| **FRONTEND_SUMMARY.md** | Frontend features and implementation summary | 5 min |
-| **FRONTEND_TESTING_GUIDE.md** | How to test the frontend | 5 min |
-| **IMPLEMENTATION_CHECKLIST.md** | Complete task checklist with progress | 3 min |
-
-### Guides & Standards
-| Document | Purpose | Read Time |
-|----------|---------|-----------|
-| **instructions/frontend-guidelines.md** | Frontend development standards | 10 min |
-| **instructions/backend-guidelines.md** | Backend development standards | 10 min |
-| **instructions/project-structure.md** | Project folder organization | 5 min |
-| **instructions/naming-conventions.md** | Naming rules for files, classes, functions | 5 min |
-
-### Architecture & Design
-| Document | Purpose | Read Time |
-|----------|---------|-----------|
-| **docs/API-CONTRACTS.md** | API specifications and contracts | 10 min |
-| **docs/ARCHITECTURE.md** | System architecture and design | 10 min |
-| **docs/SECURITY-STANDARDS.md** | Security best practices | 5 min |
-| **docs/TESTING-GUIDE.md** | Testing strategies and tools | 5 min |
-
-## 🗂️ Documentation Structure
-
-```
-Repository Root/
-├── README.md                          (Start here)
-├── QUICK_REFERENCE.md                 (One-page guide)
-│
-├── Git & Workflow Docs/
+## Migration Notes
+Previously separate files (IMPLEMENTATION_GUIDE.md, FRONTEND_IMPLEMENTATION.md, etc.) have been merged into the new consolidated set above. Removed files are fully represented in the new documents.
 │   ├── GIT_WORKFLOW.md                (Complete workflow)
 │   ├── GIT_COMMAND_REFERENCE.md       (Commands reference)
 │   ├── BRANCH_PROTECTION_SETUP.md     (GitHub setup)

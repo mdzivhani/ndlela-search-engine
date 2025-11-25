@@ -1,6 +1,15 @@
-# Ndlela Search Engine - Map-Based Tourism Search
+> This file has been deprecated.
+# Implementation Guide (Moved)
 
-A modern, Booking.com-inspired tourism and activities search platform focused on South African SMMEs with interactive map-based discovery.
+The full implementation guidance has been consolidated into `docs/IMPLEMENTATION_GUIDE.md` and `docs/FRONTEND_GUIDE.md`.
+
+Original detailed sections (map search, SearchHero, filters, recommendations, user flows) now reside in:
+- `docs/FRONTEND_GUIDE.md` (frontend & component architecture)
+- `docs/IMPLEMENTATION_GUIDE.md` (cross-cutting & architecture)
+
+Please update references to point to the consolidated documents. This legacy file is retained only as a migration pointer.
+
+Last Updated: 2025-11-25
 
 ## 🚀 Features
 

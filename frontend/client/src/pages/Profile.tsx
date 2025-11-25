@@ -3,13 +3,16 @@
  * Allows authenticated users to view and edit their profile information
  */
 import React, { useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth, getAuthHeader } from '../contexts/AuthContext'
 import { UpdateProfileRequest } from '../types/auth'
+import ProfileAvatar from '../components/ProfileAvatar'
 
 const API_BASE_URL = '/api'
 
 export default function Profile() {
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
@@ -38,12 +41,14 @@ export default function Profile() {
       setSuccess('')
 
       try {
+        const baseHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
+        const authHeader = getAuthHeader() as Record<string, string>
+        if (authHeader && authHeader.Authorization) {
+          baseHeaders.Authorization = authHeader.Authorization
+        }
         const response = await fetch(`${API_BASE_URL}/users/me`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            ...getAuthHeader(),
-          },
+          headers: baseHeaders,
           body: JSON.stringify(formData),
         })
 
@@ -125,6 +130,26 @@ export default function Profile() {
                 Edit Profile
               </button>
             )}
+            {isEditing && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.history.length > 1) {
+                    navigate(-1)
+                  } else {
+                    navigate('/search')
+                  }
+                }}
+                className="btn-secondary"
+              >
+                Back
+              </button>
+            )}
+          </div>
+
+          {/* Avatar Section */}
+          <div className="profile-avatar-section">
+            <ProfileAvatar size="large" showActions={isEditing} />
           </div>
 
           {error && <div className="message-error">{error}</div>}
@@ -232,22 +257,7 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* Profile Picture Section - Stub for future implementation */}
-            <div className="profile-section profile-section-disabled">
-              <h3>Profile Picture</h3>
-              <p className="form-help-text">
-                Profile picture upload will be available soon. This feature requires image storage
-                configuration.
-              </p>
-              <div className="profile-picture-placeholder">
-                <div className="profile-avatar">
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-                <button type="button" disabled className="btn-secondary">
-                  Upload Photo
-                </button>
-              </div>
-            </div>
+            {/* Profile picture logic now handled by ProfileAvatar component */}
 
             {isEditing && (
               <div className="profile-actions">

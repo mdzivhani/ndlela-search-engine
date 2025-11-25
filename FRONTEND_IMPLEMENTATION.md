@@ -1,8 +1,13 @@
-# Ndlela Search Platform - Frontend Implementation Guide
+> Deprecated legacy document.
+# Frontend Implementation (Moved)
 
-## Overview
+This detailed guide has been consolidated into:
+- `docs/FRONTEND_GUIDE.md` (current component & architecture details)
+- `docs/IMPLEMENTATION_GUIDE.md` (system-wide cross-cutting concerns)
 
-A complete, production-ready frontend for the South African national tourism search and registration system. The frontend includes user authentication (register/login), protected search functionality, and integrates with backend microservices.
+Please update any references pointing here. The original content (authentication flow, component inventory, testing checklist, enhancements, troubleshooting) is preserved in the consolidated guides.
+
+Last Updated: 2025-11-25
 
 ## What Was Built
 

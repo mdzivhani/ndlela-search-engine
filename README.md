@@ -21,59 +21,35 @@ Ndlela Search Engine
     └── CI/CD/          # GitHub Actions workflows
 ```
 
-## ✨ Features
+## ✨ Feature Highlights
 
-### Frontend
-- ✅ **Authentication**: User registration, login, logout with JWT tokens
-- ✅ **Search**: Full-text search across tourism businesses with filtering
-- ✅ **Protected Routes**: Role-based access control and auth guards
-- ✅ **Responsive Design**: Mobile, tablet, and desktop support
-- ✅ **TypeScript**: Strict typing for zero `any` types
-- ✅ **Modern Stack**: React 18, Vite 5, React Router v6, CSS custom properties
-
-### Backend
-- ✅ **Microservices**: Auth API, Business API, Search API (.NET 8)
-- ✅ **JWT Authentication**: Secure token-based authentication
-- ✅ **Full-Text Search**: OpenSearch/Elasticsearch integration ready
-- ✅ **Data Persistence**: Entity Framework Core with SQL Server support
-- ✅ **Unit Tests**: xUnit test coverage for services
-- ✅ **Docker Support**: Containerized services for easy deployment
-
-### Infrastructure
-- ✅ **CI/CD**: GitHub Actions workflows for build, test, and Docker image creation
-- ✅ **Documentation**: Comprehensive API contracts and development guides
-- ✅ **Standards**: Coding standards, naming conventions, and best practices
-- ✅ **Environment Management**: Configuration for dev, staging, and production
+Frontend: Auth, protected routes, advanced search & filtering, responsive design, strict TypeScript.
+Backend: .NET 8 microservices (Auth, Business, Search), JWT auth, EF Core persistence, search integration ready.
+Infrastructure: CI/CD workflows, standards & contracts, Docker-based local environment.
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Node.js 20+ (for frontend)
-- .NET 8 SDK (for backend)
-- Docker & Docker Compose (optional, for containerized deployment)
-- Git (for version control)
+Prerequisites: Node.js 20+, .NET 8 SDK, Docker (optional), Git.
 
-### Frontend Setup
+Frontend:
 ```bash
 cd frontend/client
 npm install
-npm run dev          # Start Vite dev server on http://localhost:5173
+npm run dev   # http://localhost:5173
 ```
 
-### Backend Setup
+Backend (example search API):
 ```bash
 cd backend
-dotnet restore
-dotnet build
-dotnet test
+dotnet restore && dotnet build && dotnet test
 dotnet run --project services/SA.Tourism.Search.Api/SA.Tourism.Search.Api.csproj
 ```
 
-### Express Proxy Server
+Express Proxy:
 ```bash
 cd frontend/server
 npm install
-npm run dev          # Start on http://localhost:3001
+npm run dev  # http://localhost:3001
 ```
 
 ## 📁 Project Structure
@@ -197,36 +173,35 @@ docker-compose -f docker-compose.dev.yml up
 
 ## 📚 Documentation
 
-- **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** - One-page quick start guide
-- **[FRONTEND_SUMMARY.md](./FRONTEND_SUMMARY.md)** - Frontend implementation overview
-- **[FRONTEND_IMPLEMENTATION.md](./FRONTEND_IMPLEMENTATION.md)** - Detailed frontend architecture
-- **[FRONTEND_TESTING_GUIDE.md](./FRONTEND_TESTING_GUIDE.md)** - How to test the frontend
-- **[IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md)** - Complete task checklist
-- **[docs/](./docs/)** - Architecture, standards, and best practices
-- **[instructions/](./instructions/)** - Development guidelines and conventions
+All detailed documentation now lives exclusively under `docs/`.
 
-## 🛠️ Development Workflow
+### Table of Contents
+- [Setup guide](docs/SETUP_GUIDE.md)
+- [Implementation guide](docs/IMPLEMENTATION_GUIDE.md)
+- [Project guide](docs/PROJECT-GUIDE.md)
+- [Frontend guide](docs/FRONTEND_GUIDE.md)
+- [Backend guide](docs/BACKEND_GUIDE.md)
+- [API contracts](docs/API-CONTRACTS.md)
+- [Testing guide](docs/TESTING_GUIDE.md)
+- [Git & workflow](docs/GIT_AND_WORKFLOW.md)
+- [Quick reference](docs/QUICK_REFERENCE.md)
+- [Environment standards](docs/ENVIRONMENT-STANDARDS.md)
+- [Security standards](docs/SECURITY-STANDARDS.md)
+- [Observability standards](docs/OBSERVABILITY-STANDARDS.md)
+- [Database standards](docs/DATABASE-STANDARDS.md)
+- [Pipeline guide](docs/PIPELINE-GUIDE.md)
+- [Frontend standards](docs/FRONTEND-STANDARDS.md)
+- [Backend standards](docs/BACKEND-STANDARDS.md)
+- [Documentation standards](docs/DOCUMENTATION-STANDARDS.md)
 
-### Branch Strategy
-- `main` - Production-ready code
-- Feature branches from `main` - New features
-- Pull requests for code review before merging
+All former root-level duplicate markdown files have been removed to avoid confusion. Use the links above as the single source of truth.
 
-### Commit Convention
-```
-feat: Add new feature
-fix: Bug fix
-docs: Documentation update
-style: Code style/formatting
-refactor: Code refactoring
-test: Add/update tests
-chore: Build, dependencies, tooling
-```
-
-### Code Standards
-- **Frontend**: TypeScript strict mode, ESLint configured, Prettier for formatting
-- **Backend**: C# naming conventions, SOLID principles, async/await patterns
-- **All**: Comprehensive comments, meaningful variable names, DRY principles
+## 🛠️ Workflow & Standards (Summary)
+- Branching & protection: see `docs/GIT_AND_WORKFLOW.md`
+- Commit messages: Conventional Commits (feat, fix, docs, style, refactor, test, chore)
+- Frontend: TS strict, ESLint + Prettier
+- Backend: SOLID, async patterns, DI, clean architecture
+- Security & performance: see `docs/SECURITY-STANDARDS.md`, `docs/OBSERVABILITY-STANDARDS.md`
 
 ## 🔧 Configuration
 
@@ -289,12 +264,11 @@ npm run build
 - Check Docker image builds
 - Review test output for failures
 
-## 📈 Performance
-
-- **Frontend Bundle**: ~150KB (gzipped)
-- **API Response Time**: < 100ms
-- **Search Index**: Optimized for < 50ms queries
-- **Mobile Load Time**: < 2 seconds
+## 📈 Performance (Targets)
+- Bundle (frontend, gzipped): ~150KB
+- API median response: <100ms
+- Search queries: <50ms
+- Mobile FCP: <2s
 
 ## 🔒 Security Features
 
@@ -324,16 +298,10 @@ For issues, questions, or contributions:
 4. Create detailed issue with reproduction steps
 
 ## 🎉 Status
-
-- ✅ Frontend: Complete and tested
-- ✅ Backend: Scaffolded and ready for implementation
-- ✅ CI/CD: Configured and running
-- ✅ Documentation: Comprehensive guides available
-- 🔄 Integration: Ready for microservices connection
-- 🚀 Deployment: Ready for staging/production
+✅ Frontend stable | ✅ Backend scaffolded | ✅ CI/CD active | 🔄 Integration in progress | 🚀 Deployment-ready
 
 ---
 
-**Last Updated**: November 19, 2025
-**Version**: 0.1.0
+**Last Updated**: November 25, 2025
+**Version**: 0.2.0 (Docs Consolidation)
 **Status**: Active Development

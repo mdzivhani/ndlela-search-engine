@@ -87,13 +87,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null)
   }, [])
 
+  const updateUser = useCallback((partial: Partial<User>) => {
+    setUser(prev => (prev ? { ...prev, ...partial } : prev))
+  }, [])
+
   const value: AuthContextType = {
     user,
     isLoading,
     isAuthenticated: user !== null,
     login,
     register,
-    logout
+    logout,
+    updateUser
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
