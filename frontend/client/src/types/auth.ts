@@ -7,6 +7,20 @@ export interface User {
   id: string
   email: string
   name: string
+  phone?: string
+  location?: string
+  city?: string
+  province?: string
+  profilePicture?: string
+  createdAt?: string
+}
+
+export interface UpdateProfileRequest {
+  name?: string
+  phone?: string
+  location?: string
+  city?: string
+  province?: string
 }
 
 export interface LoginRequest {
