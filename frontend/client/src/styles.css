@@ -326,7 +326,7 @@ body {
   background-color: var(--gray-100);
   color: var(--gray-700);
   padding: 0.25rem 0.625rem;
-  borderRadius: 16px;
+  border-radius: 16px;
   font-size: 0.75rem;
   font-weight: 500;
 }
