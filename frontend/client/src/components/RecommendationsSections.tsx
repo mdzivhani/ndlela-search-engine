@@ -76,7 +76,7 @@ function ActivityCard({
   return (
     <div className="recommendation-card" onClick={() => onClick(activity.id)}>
       {activity.thumbnailUrl && (
-        <img src={activity.thumbnailUrl} alt={activity.name} className="recommendation-image" />
+        <img src={activity.thumbnailUrl} alt={activity.name} className="recommendation-image" loading="lazy" />
       )}
       <div className="recommendation-content">
         <h4>{activity.name}</h4>
@@ -151,7 +151,7 @@ export default function RecommendationsSections({
               className="region-card"
               onClick={() => onRegionClick(region.name, region.latitude, region.longitude)}
             >
-              <img src={region.imageUrl} alt={region.name} className="region-image" />
+              <img src={region.imageUrl} alt={region.name} className="region-image" loading="lazy" />
               <div className="region-overlay">
                 <h4>{region.name}</h4>
                 <p>{region.province}</p>

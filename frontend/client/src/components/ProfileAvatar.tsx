@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { uploadAvatar, removeAvatar } from '../services/user.service'
 import { useAuth } from '../contexts/AuthContext'
+import { processAvatarImage } from '../utils/image'
 
 interface ProfileAvatarProps {
   size?: 'small' | 'large'
@@ -13,22 +14,36 @@ export default function ProfileAvatar({ size = 'large', showActions = false }: P
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState('')
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [processedFile, setProcessedFile] = useState<File | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
 
   const handleSelectClick = () => fileInputRef.current?.click()
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     setError('')
-    // revoke previous preview if exists
+    setIsProcessing(true)
     if (previewUrl) URL.revokeObjectURL(previewUrl)
-    const objectUrl = URL.createObjectURL(file)
-    setPreviewUrl(objectUrl)
+    try {
+      const optimized = await processAvatarImage(file)
+      setProcessedFile(optimized)
+      const objectUrl = URL.createObjectURL(optimized)
+      setPreviewUrl(objectUrl)
+    } catch (err) {
+      // Fallback: use original file
+      setProcessedFile(file)
+      const objectUrl = URL.createObjectURL(file)
+      setPreviewUrl(objectUrl)
+      setError(err instanceof Error ? err.message : 'Process failed')
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   const handleUpload = async () => {
     if (!fileInputRef.current || !fileInputRef.current.files || !fileInputRef.current.files[0]) return
-    const file = fileInputRef.current.files[0]
+    const file = processedFile || fileInputRef.current.files[0]
     setIsUploading(true)
     setError('')
     try {
@@ -65,7 +80,7 @@ export default function ProfileAvatar({ size = 'large', showActions = false }: P
 
   const renderContent = () => {
     if (user?.profilePicture) {
-      return <img src={user.profilePicture} alt={user.name + ' avatar'} className="avatar-image" />
+      return <img src={user.profilePicture} alt={user.name + ' avatar'} className="avatar-image" loading="lazy" />
     }
     const initial = user?.name?.charAt(0).toUpperCase() || '?' 
     return <span className="avatar-initial" aria-label="avatar-initial">{initial}</span>
@@ -100,16 +115,18 @@ export default function ProfileAvatar({ size = 'large', showActions = false }: P
                 className="avatar-image"
                 style={{ width: size === 'large' ? 100 : 48, height: size === 'large' ? 100 : 48, objectFit: 'cover', borderRadius: '50%' }}
                 data-testid="avatar-preview"
+                loading="lazy"
               />
               <div style={{ marginTop: '0.5rem' }}>
+                {isProcessing && <span style={{ fontSize: '0.75rem', color: '#666' }}>Optimizing...</span>}
                 <button
                   type="button"
                   className="btn-secondary"
                   onClick={handleUpload}
-                  disabled={isUploading}
+                  disabled={isUploading || isProcessing}
                   data-testid="confirm-upload-button"
                 >
-                  {isUploading ? 'Uploading...' : 'Confirm Upload'}
+                  {isUploading ? 'Uploading...' : isProcessing ? 'Processing...' : 'Confirm Upload'}
                 </button>
                 <button
                   type="button"
@@ -117,9 +134,10 @@ export default function ProfileAvatar({ size = 'large', showActions = false }: P
                   onClick={() => {
                     if (previewUrl) URL.revokeObjectURL(previewUrl)
                     setPreviewUrl(null)
+                    setProcessedFile(null)
                     if (fileInputRef.current) fileInputRef.current.value = ''
                   }}
-                  disabled={isUploading}
+                  disabled={isUploading || isProcessing}
                   style={{ marginLeft: '0.5rem' }}
                   data-testid="cancel-upload-button"
                 >
