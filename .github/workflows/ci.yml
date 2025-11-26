@@ -91,8 +91,8 @@ jobs:
       - name: Build Business API image
         uses: docker/build-push-action@v6
         with:
-          context: backend/services/SA.Tourism.Business.Api
-          file: backend/services/SA.Tourism.Business.Api/Dockerfile
+          context: ./backend/services
+          file: ./backend/services/SA.Tourism.Business.Api/Dockerfile
           push: false
           tags: satourism/business-api:ci
           cache-from: type=gha
@@ -101,8 +101,8 @@ jobs:
       - name: Build Auth API image
         uses: docker/build-push-action@v6
         with:
-          context: backend/services/SA.Tourism.Auth.Api
-          file: backend/services/SA.Tourism.Auth.Api/Dockerfile
+          context: ./backend/services
+          file: ./backend/services/SA.Tourism.Auth.Api/Dockerfile
           push: false
           tags: satourism/auth-api:ci
           cache-from: type=gha
