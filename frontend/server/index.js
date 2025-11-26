@@ -31,13 +31,6 @@ app.use('/api/operator', operatorRouter);
 app.get('/', (req, res) => res.json({ service: 'ndlela-search-engine', status: 'ok' }));
 app.get('/health', (req, res) => res.json({ status: 'healthy' }));
 
-// Global error handler (last)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-app.use((err, req, res, next) => {
-	logger.error({ message: err.message, stack: err.stack });
-	res.status(500).json({ message: 'Internal server error' });
-});
-
 const port = process.env.PORT || 3001;
 
 // Run DB migrations before starting server
