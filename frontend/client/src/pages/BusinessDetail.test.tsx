@@ -24,7 +24,7 @@ describe('BusinessDetail compact layout', () => {
     render(
       <AuthProvider>
         <CartProvider>
-          <MemoryRouter initialEntries={["/business/0"]}>
+          <MemoryRouter initialEntries={["/business/1"]}>
             <Routes>
               <Route path="/business/:id" element={<BusinessDetail />} />
             </Routes>
