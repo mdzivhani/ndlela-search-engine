@@ -14,13 +14,22 @@ const TOKEN_EXPIRY = process.env.JWT_EXPIRATION || '7d';
 // Multer storage configuration for avatars
 const avatarStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const dest = path.join(__dirname, '..', 'uploads', 'avatars');
-    fs.mkdirSync(dest, { recursive: true });
-    cb(null, dest);
+    try {
+      const userId = (req.user && req.user.id) || 'unknown';
+      const dest = path.join(__dirname, '..', 'uploads', 'avatars', userId);
+      fs.mkdirSync(dest, { recursive: true });
+      cb(null, dest);
+    } catch (e) {
+      cb(e);
+    }
   },
   filename: (req, file, cb) => {
-    const userId = (req.user && req.user.id) || 'unknown';
-    cb(null, userId + path.extname(file.originalname).toLowerCase());
+    try {
+      const userId = (req.user && req.user.id) || 'unknown';
+      cb(null, 'avatar' + path.extname(file.originalname).toLowerCase());
+    } catch (e) {
+      cb(e);
+    }
   }
 });
 
@@ -60,12 +69,12 @@ router.post('/login', async (req, res) => {
 
     const result = await query('SELECT id, email, password_hash, name, profile_picture FROM users WHERE email=$1', [email]);
     if (result.rowCount === 0) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(404).json({ message: 'Email not registered. Please register to continue.' , code: 'EMAIL_NOT_REGISTERED' });
     }
     const user = result.rows[0];
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: 'Incorrect password. Please try again.' , code: 'WRONG_PASSWORD' });
     }
 
     const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: TOKEN_EXPIRY });
@@ -149,7 +158,7 @@ router.post('/avatar', verifyToken, (req, res, next) => {
     }
     try {
       const userId = req.user.id;
-      const fileRelPath = `/uploads/avatars/${req.file.filename}`;
+      const fileRelPath = `/uploads/avatars/${userId}/${req.file.filename}`;
       query('UPDATE users SET profile_picture=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2', [fileRelPath, userId])
         .catch((e) => console.warn('Failed to update profile picture', e));
       return res.json({ success: true, url: fileRelPath });
@@ -168,7 +177,7 @@ router.delete('/avatar', verifyToken, async (req, res) => {
     if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'User not found' });
     const current = result.rows[0].profile_picture;
     if (current) {
-      const filePath = path.join(__dirname, '..', 'uploads', 'avatars', path.basename(current));
+      const filePath = path.join(__dirname, '..', current);
       if (fs.existsSync(filePath)) {
         try { fs.unlinkSync(filePath); } catch (e) { console.warn('Failed to delete avatar file', e); }
       }

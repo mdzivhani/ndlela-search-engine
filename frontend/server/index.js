@@ -4,6 +4,8 @@ const helmet = require('helmet');
 const path = require('path');
 require('dotenv').config();
 const { migrate } = require('./migrate');
+const morgan = require('morgan');
+const logger = require('./logger');
 
 const authRouter = require('./routes/auth.router');
 const searchRouter = require('./routes/search.router');
@@ -13,6 +15,11 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+app.use(morgan('combined', {
+	stream: {
+		write: (msg) => logger.info(msg.trim())
+	}
+}));
 
 // Serve uploaded assets (avatars)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -23,6 +30,13 @@ app.use('/api/operator', operatorRouter);
 
 app.get('/', (req, res) => res.json({ service: 'ndlela-search-engine', status: 'ok' }));
 app.get('/health', (req, res) => res.json({ status: 'healthy' }));
+
+// Global error handler (last)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err, req, res, next) => {
+	logger.error({ message: err.message, stack: err.stack });
+	res.status(500).json({ message: 'Internal server error' });
+});
 
 const port = process.env.PORT || 3001;
 
