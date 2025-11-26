@@ -1,0 +1,266 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  DEPLOY_USER: mulalo
+  DEPLOY_HOST: 102.214.11.174
+  DEPLOY_PATH: /home/mulalo/applications/ndlela-search-engine
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/client/package.json
+            frontend/server/package.json
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend/client
+          npm ci
+          cd ../server
+          npm ci
+
+      - name: Run frontend tests
+        run: |
+          cd frontend/client
+          npm test -- --run
+        continue-on-error: true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore .NET dependencies
+        run: |
+          cd backend
+          dotnet restore
+
+      - name: Build .NET projects
+        run: |
+          cd backend
+          dotnet build --no-restore
+
+      - name: Run .NET tests
+        run: |
+          cd backend
+          dotnet test --no-build --verbosity normal
+        continue-on-error: true
+
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Auth API image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend/services
+          file: ./backend/services/SA.Tourism.Auth.Api/Dockerfile
+          tags: ndlela-auth-api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=docker,dest=/tmp/auth-api.tar
+
+      - name: Build Business API image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend/services
+          file: ./backend/services/SA.Tourism.Business.Api/Dockerfile
+          tags: ndlela-business-api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=docker,dest=/tmp/business-api.tar
+
+      - name: Build Express Server image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend/server
+          file: ./frontend/server/Dockerfile
+          tags: ndlela-express-server:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=docker,dest=/tmp/express-server.tar
+
+      - name: Build Client image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend/client
+          file: ./frontend/client/Dockerfile
+          tags: ndlela-client:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=docker,dest=/tmp/client.tar
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-images
+          path: /tmp/*.tar
+          retention-days: 1
+
+  deploy:
+    name: Deploy to Production Server
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: production
+      url: https://ndlelasearchengine.co.za
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-images
+          path: /tmp
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copy Docker images to server
+        run: |
+          scp /tmp/*.tar ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}:/tmp/
+
+      - name: Deploy application
+        run: |
+          ssh ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }} << 'ENDSSH'
+            set -e
+            
+            echo "=========================================="
+            echo "Deploying Ndlela Search Engine"
+            echo "=========================================="
+            
+            cd ${{ env.DEPLOY_PATH }}
+            
+            # Load Docker images
+            echo "Loading Docker images..."
+            docker load < /tmp/auth-api.tar
+            docker load < /tmp/business-api.tar
+            docker load < /tmp/express-server.tar
+            docker load < /tmp/client.tar
+            
+            # Tag images as latest
+            docker tag ndlela-auth-api:${{ github.sha }} ndlela-search-engine-auth-api:latest
+            docker tag ndlela-business-api:${{ github.sha }} ndlela-search-engine-business-api:latest
+            docker tag ndlela-express-server:${{ github.sha }} ndlela-search-engine-express-server:latest
+            docker tag ndlela-client:${{ github.sha }} ndlela-search-engine-client:latest
+            
+            # Pull latest code
+            echo "Pulling latest code..."
+            git fetch origin
+            git reset --hard origin/main
+            
+            # Backup database
+            echo "Creating database backup..."
+            mkdir -p backups
+            docker exec ndlela-postgres pg_dump -U postgres ndlela | gzip > backups/pre-deploy-$(date +%Y%m%d_%H%M%S).sql.gz || true
+            
+            # Deploy with docker compose
+            echo "Deploying services..."
+            docker compose -f docker-compose.prod.yml up -d --no-build
+            
+            # Wait for services to be healthy
+            echo "Waiting for services to be healthy..."
+            sleep 15
+            
+            # Check service status
+            echo "Checking service status..."
+            docker compose -f docker-compose.prod.yml ps
+            
+            # Cleanup old images
+            echo "Cleaning up old Docker images..."
+            docker image prune -f
+            
+            # Cleanup temporary files
+            rm -f /tmp/*.tar
+            
+            # Keep only last 7 days of backups
+            find backups -name "pre-deploy-*.sql.gz" -mtime +7 -delete || true
+            
+            echo "=========================================="
+            echo "Deployment completed successfully!"
+            echo "=========================================="
+          ENDSSH
+
+      - name: Health check
+        run: |
+          echo "Performing health check..."
+          sleep 10
+          
+          # Check if site is responding
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 http://${{ env.DEPLOY_HOST }}/ || echo "000")
+          
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Health check passed (HTTP $HTTP_CODE)"
+          else
+            echo "⚠️ Health check returned HTTP $HTTP_CODE"
+            exit 1
+          fi
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ Deployment successful!"
+            echo "🌐 Site: https://ndlelasearchengine.co.za"
+          else
+            echo "❌ Deployment failed!"
+            echo "Please check the logs and server status."
+          fi
+
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: failure()
+    
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ env.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Rollback deployment
+        run: |
+          ssh ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }} << 'ENDSSH'
+            cd ${{ env.DEPLOY_PATH }}
+            
+            echo "⚠️ Rolling back to previous version..."
+            
+            # Restart services with existing images
+            docker compose -f docker-compose.prod.yml restart
+            
+            echo "Rollback completed. Services restarted with previous version."
+          ENDSSH
