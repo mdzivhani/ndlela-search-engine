@@ -8,6 +8,11 @@ on:
     branches:
       - dev
 
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
 jobs:
   lint-and-format:
     name: Lint and Format Check
@@ -78,19 +83,13 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore .NET dependencies
-        run: |
-          cd backend
-          dotnet restore
+        run: dotnet restore "Ndlela Search Engine.sln"
 
       - name: Build .NET projects
-        run: |
-          cd backend
-          dotnet build --no-restore --configuration Release
+        run: dotnet build "Ndlela Search Engine.sln" --no-restore --configuration Release
 
       - name: Run .NET tests
-        run: |
-          cd backend
-          dotnet test --no-build --configuration Release --verbosity normal
+        run: dotnet test "Ndlela Search Engine.sln" --no-build --configuration Release --verbosity normal
 
   build-docker:
     name: Build and Test Docker Images
