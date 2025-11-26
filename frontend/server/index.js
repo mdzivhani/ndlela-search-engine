@@ -3,6 +3,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
 require('dotenv').config();
+const { migrate } = require('./migrate');
+const morgan = require('morgan');
+const logger = require('./logger');
 
 const authRouter = require('./routes/auth.router');
 const searchRouter = require('./routes/search.router');
@@ -12,6 +15,11 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+app.use(morgan('combined', {
+	stream: {
+		write: (msg) => logger.info(msg.trim())
+	}
+}));
 
 // Serve uploaded assets (avatars)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -24,4 +32,13 @@ app.get('/', (req, res) => res.json({ service: 'ndlela-search-engine', status: '
 app.get('/health', (req, res) => res.json({ status: 'healthy' }));
 
 const port = process.env.PORT || 3001;
-app.listen(port, () => console.log(`Server listening on ${port}`));
+
+// Run DB migrations before starting server
+migrate()
+	.then(() => {
+		app.listen(port, () => console.log(`Server listening on ${port}`));
+	})
+	.catch((err) => {
+		console.error('Migration failed:', err);
+		process.exit(1);
+	});

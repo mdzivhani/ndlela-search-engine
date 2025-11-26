@@ -13,6 +13,11 @@ This folder contains comprehensive development guidelines for software projects.
 - [**Code Review**](http://code-review-guidelines.md) - Standards for reviewing and merging code
 - [**Git Workflow**](http://git-workflow.md) - Commit messages, branching, and PR practices
 - [**Configuration Management**](http://configuration-management.md) - Managing settings and environment-specific configs
+- [**Code Review**](http://code-review-guidelines.md) - Standards for reviewing and merging code
+- [**Git Workflow**](http://git-workflow.md) - Commit messages, branching, and PR practices
+- [**Configuration Management**](http://configuration-management.md) - Managing settings and environment-specific configs
+- [**Data Persistence & Deployment**](data-persistence-deployment.md) - User data storage, backups, and deployment without data loss
+- [**Workflow File Paths**](workflow-file-paths.md) - CI/CD file path validation and structure reference
 
 ## Purpose
 
