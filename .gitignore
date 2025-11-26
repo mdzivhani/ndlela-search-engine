@@ -169,7 +169,6 @@ site/
 *.xlsx
 
 # ====== Project Specific ======
-instructions/
 .instructions/
 scratch/
 temp/
