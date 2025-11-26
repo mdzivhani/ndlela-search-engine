@@ -39,9 +39,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Check .NET formatting
-        run: |
-          cd backend
-          dotnet format --verify-no-changes --verbosity diagnostic
+        run: dotnet format backend/Ndlela\ Search\ Engine.sln --verify-no-changes --verbosity diagnostic
         continue-on-error: true
 
   test:

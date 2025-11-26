@@ -5,6 +5,9 @@
 
 set -e
 
+# Application path configuration
+APP_PATH="${APP_PATH:-/home/mulalo/applications/ndlela-search-engine}"
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -79,7 +82,7 @@ fi
 if ! ss -tuln | grep -q ':80 '; then
     echo -e "${RED}Error: Nothing is listening on port 80${NC}"
     echo "Please start the application first with:"
-    echo "  cd /home/mulalo/applications/ndlela-search-engine"
+    echo "  cd $APP_PATH"
     echo "  docker compose -f docker-compose.prod.yml up -d"
     exit 1
 fi
@@ -106,7 +109,7 @@ server {
 EOF
 
 echo -e "${YELLOW}Stopping current nginx container...${NC}"
-cd /home/mulalo/applications/ndlela-search-engine
+cd "$APP_PATH"
 docker compose -f docker-compose.prod.yml stop nginx 2>/dev/null || true
 
 # Obtain certificate
@@ -128,7 +131,7 @@ if [ $? -ne 0 ]; then
     echo "  4. Domain name is correct"
     echo ""
     echo "Restarting application with HTTP only..."
-    cd /home/mulalo/applications/ndlela-search-engine
+    cd "$APP_PATH"
     docker compose -f docker-compose.prod.yml start nginx
     exit 1
 fi
@@ -137,7 +140,7 @@ echo -e "${GREEN}✓ SSL certificate obtained successfully${NC}"
 
 # Enable HTTPS configuration
 echo -e "${YELLOW}Enabling HTTPS configuration...${NC}"
-cd /home/mulalo/applications/ndlela-search-engine
+cd "$APP_PATH"
 if [ -f nginx/conf.d/ndlela-https.conf.disabled ]; then
     mv nginx/conf.d/ndlela-https.conf.disabled nginx/conf.d/ndlela.conf
     rm -f nginx/conf.d/ndlela-http.conf
@@ -162,7 +165,7 @@ fi
 
 # Setup automatic renewal
 echo -e "${YELLOW}Setting up automatic certificate renewal...${NC}"
-CRON_JOB="0 3 * * * certbot renew --quiet --post-hook 'docker compose -f $(pwd)/docker-compose.prod.yml restart nginx'"
+CRON_JOB="0 3 * * * certbot renew --quiet --post-hook 'docker compose -f $APP_PATH/docker-compose.prod.yml restart nginx'"
 (crontab -l 2>/dev/null | grep -v certbot; echo "$CRON_JOB") | crontab -
 
 echo ""

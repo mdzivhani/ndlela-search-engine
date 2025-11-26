@@ -44,19 +44,13 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Restore .NET dependencies
-        run: |
-          cd backend
-          dotnet restore
+        run: dotnet restore backend/Ndlela\ Search\ Engine.sln
 
       - name: Build .NET projects
-        run: |
-          cd backend
-          dotnet build --no-restore
+        run: dotnet build backend/Ndlela\ Search\ Engine.sln --no-restore
 
       - name: Run .NET tests
-        run: |
-          cd backend
-          dotnet test --no-build --verbosity normal
+        run: dotnet test backend/Ndlela\ Search\ Engine.sln --no-build --verbosity normal
         continue-on-error: true
 
   build:
