@@ -1,3 +1,15 @@
+# Production Deployment Workflow
+# 
+# IMPORTANT: File Path Structure
+# - Solution file: ./Ndlela Search Engine.sln (at repository root)
+# - Backend projects: ./backend/services/*/
+# - Frontend client: ./frontend/client/
+# - Frontend server: ./frontend/server/
+# - Dockerfiles: Located in each service directory
+# - Docker contexts:
+#   * Backend APIs: ./backend/services (parent of service folders)
+#   * Frontend: ./frontend/client or ./frontend/server
+
 name: Deploy to Production
 
 on:
