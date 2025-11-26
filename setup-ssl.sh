@@ -42,6 +42,10 @@ echo ""
 echo -e "${YELLOW}Checking DNS configuration...${NC}"
 DNS_IP=$(dig +short $DOMAIN @8.8.8.8 | tail -1)
 SERVER_IP=$(curl -s ifconfig.me)
+if [ -z "$SERVER_IP" ]; then
+    echo -e "${RED}Error: Unable to determine server IP address${NC}"
+    exit 1
+fi
 
 if [ -z "$DNS_IP" ]; then
     echo -e "${RED}Error: DNS is not configured for $DOMAIN${NC}"

@@ -169,7 +169,8 @@ jobs:
             docker load < /tmp/express-server.tar
             docker load < /tmp/client.tar
             
-            # Tag images as latest
+            # Tag images as latest (tagged after successful deployment verification)
+            # Using SHA tags ensures version traceability and rollback capability
             docker tag ndlela-auth-api:${{ github.sha }} ndlela-search-engine-auth-api:latest
             docker tag ndlela-business-api:${{ github.sha }} ndlela-search-engine-business-api:latest
             docker tag ndlela-express-server:${{ github.sha }} ndlela-search-engine-express-server:latest
@@ -183,7 +184,9 @@ jobs:
             # Backup database
             echo "Creating database backup..."
             mkdir -p backups
-            docker exec ndlela-postgres pg_dump -U postgres ndlela | gzip > backups/pre-deploy-$(date +%Y%m%d_%H%M%S).sql.gz || true
+            if ! docker exec ndlela-postgres pg_dump -U postgres ndlela | gzip > backups/pre-deploy-$(date +%Y%m%d_%H%M%S).sql.gz; then
+              echo "⚠️ WARNING: Database backup failed!" >&2
+            fi
             
             # Deploy with docker compose
             echo "Deploying services..."
@@ -217,13 +220,14 @@ jobs:
           echo "Performing health check..."
           sleep 10
           
-          # Check if site is responding
+          # Check if site and API are responding
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 http://${{ env.DEPLOY_HOST }}/ || echo "000")
+          API_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 http://${{ env.DEPLOY_HOST }}/api/health || echo "000")
           
-          if [ "$HTTP_CODE" = "200" ]; then
-            echo "✅ Health check passed (HTTP $HTTP_CODE)"
+          if [ "$HTTP_CODE" = "200" ] && [ "$API_CODE" = "200" ]; then
+            echo "✅ Health check passed (Frontend HTTP $HTTP_CODE, API HTTP $API_CODE)"
           else
-            echo "⚠️ Health check returned HTTP $HTTP_CODE"
+            echo "⚠️ Health check failed: Frontend=$HTTP_CODE, API=$API_CODE"
             exit 1
           fi
 

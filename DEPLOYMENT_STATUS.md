@@ -161,8 +161,8 @@ curl https://ndlelasearchengine.co.za
 ### Credentials
 **IMPORTANT**: Keep these secure!
 
-- **PostgreSQL Password**: `fjDHfAcq20ZVwILHGIgmN/pnp/AndXsO`
-- **JWT Secret**: `4gAG+UVYGVosb8Sk2YD3mleKRXiN6C7jcpHhcdmsJMZ9HIOnOhEEjzbE72Jzfwpm`
+- **PostgreSQL Password**: [REDACTED - See .env file]
+- **JWT Secret**: [REDACTED - See .env file]
 
 These are stored in `.env` file which is (and should remain) in `.gitignore`.
 

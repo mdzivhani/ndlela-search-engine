@@ -24,13 +24,16 @@ All containers are running:
 
 ### 🔐 Secure Credentials
 
+**⚠️ SECURITY WARNING**: The actual credentials have been omitted from this public document.
+Store them securely in the `.env` file, which should never be committed to version control.
+
 **Database**:
 - Host: postgres (internal)
 - Database: ndlela
 - Username: postgres
-- Password: `fjDHfAcq20ZVwILHGIgmN/pnp/AndXsO`
+- Password: See `.env` file
 
-**JWT Secret**: `4gAG+UVYGVosb8Sk2YD3mleKRXiN6C7jcpHhcdmsJMZ9HIOnOhEEjzbE72Jzfwpm`
+**JWT Secret**: See `.env` file
 
 **⚠️ IMPORTANT**: Keep these credentials secure! They are stored in `/home/mulalo/applications/ndlela-search-engine/.env`
 
