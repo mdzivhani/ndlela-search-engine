@@ -25,7 +25,6 @@ const avatarStorage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     try {
-      const userId = (req.user && req.user.id) || 'unknown';
       cb(null, 'avatar' + path.extname(file.originalname).toLowerCase());
     } catch (e) {
       cb(e);
