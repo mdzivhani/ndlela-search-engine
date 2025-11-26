@@ -72,6 +72,8 @@ vi.mock('react-leaflet', () => ({
       getEast: () => 0,
       getWest: () => 0,
     })),
+    on: vi.fn(),
+    off: vi.fn(),
   }),
   useMapEvents: (handlers: any) => {
     // Return a mock map object that the component can use
