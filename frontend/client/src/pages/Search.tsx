@@ -1,28 +1,54 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { performSearch } from '../services/search.service'
-import { SearchResponse } from '../types/search'
+import { SearchResponse, SearchRequest, MapBounds } from '../types/search'
+import { useGeolocation } from '../hooks/useGeolocation'
+import Cart from '../components/Cart'
+import SearchHero from '../components/SearchHero'
+import FilterPanel from '../components/FilterPanel'
+import ActivityMap from '../components/ActivityMap'
+import RecommendationsSections from '../components/RecommendationsSections'
 
 export default function Search() {
   const { user, logout } = useAuth()
-  const [query, setQuery] = useState('')
+  const navigate = useNavigate()
+  const { location: userLocation, isLoading: isLocationLoading } = useGeolocation()
+  
   const [results, setResults] = useState<SearchResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showMap, setShowMap] = useState(false) // For mobile map toggle
+  const [highlightedId, setHighlightedId] = useState<string | null>(null)
+  const [mapCenter, setMapCenter] = useState<[number, number] | undefined>()
+  const [mapZoom, setMapZoom] = useState<number>(10)
+  
+  // Search filters state
+  const [filters, setFilters] = useState<Partial<SearchRequest>>({
+    sortBy: 'relevance',
+    radiusKm: 20,
+  })
 
   const handleSearch = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault()
+    async (params: SearchRequest) => {
       setError('')
-
-      if (!query.trim()) {
-        setError('Please enter a search query')
-        return
-      }
-
       setIsLoading(true)
+      
       try {
-        const response = await performSearch({ q: query, limit: 20 })
+        // Merge with current filters and user location
+        const searchParams: SearchRequest = {
+          ...filters,
+          ...params,
+          limit: params.limit || 20,
+        }
+
+        // If we have user location and no specific location in params, use it
+        if (userLocation && !params.lat && !params.lng && !params.bounds) {
+          searchParams.lat = userLocation.latitude
+          searchParams.lng = userLocation.longitude
+        }
+
+        const response = await performSearch(searchParams)
         setResults(response)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Search failed')
@@ -31,8 +57,55 @@ export default function Search() {
         setIsLoading(false)
       }
     },
-    [query]
+    [filters, userLocation]
   )
+
+  // Perform initial search when user location is available
+  useEffect(() => {
+    if (userLocation && !isLocationLoading && !results) {
+      const initialSearch: SearchRequest = {
+        lat: userLocation.latitude,
+        lng: userLocation.longitude,
+        radiusKm: 20,
+        limit: 20,
+      }
+      handleSearch(initialSearch)
+    }
+  }, [userLocation, isLocationLoading, handleSearch])
+
+  const handleFiltersChange = useCallback((newFilters: Partial<SearchRequest>) => {
+    setFilters(newFilters)
+    // Debounced search will be triggered by useEffect below
+  }, [])
+
+  // Debounced search on filter changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (Object.keys(filters).length > 1) { // More than just sortBy
+        handleSearch(filters)
+      }
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [filters])
+
+  const handleMapBoundsChange = useCallback((bounds: MapBounds) => {
+    handleSearch({ bounds })
+  }, [handleSearch])
+
+  const handleRegionClick = (region: string, lat: number, lng: number) => {
+    setMapCenter([lat, lng])
+    setMapZoom(10)
+    handleSearch({ lat, lng, radiusKm: 30 })
+  }
+
+  const handleMarkerClick = (id: string) => {
+    navigate(`/business/${id}`)
+  }
+
+  const handleActivityCardHover = (id: string | null) => {
+    setHighlightedId(id)
+  }
 
   return (
     <div className="search-container">
@@ -40,7 +113,18 @@ export default function Search() {
         <div className="header-content">
           <h1>Ndlela Search</h1>
           <div className="user-info">
-            <span>{user?.name}</span>
+            <button onClick={() => navigate('/profile')} className="btn-profile">
+              <span className="header-avatar-wrapper">
+                {user?.profilePicture ? (
+                  <img src={user.profilePicture} alt="avatar" className="avatar-image avatar-small" />
+                ) : (
+                  <span className="avatar avatar-small avatar-placeholder">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </span>
+              <span className="header-username">{user?.name}</span>
+            </button>
             <button onClick={logout} className="btn-logout">
               Logout
             </button>
@@ -49,55 +133,111 @@ export default function Search() {
       </header>
 
       <main className="search-main">
-        <form onSubmit={handleSearch} className="search-form">
-          <div className="search-input-group">
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search for businesses, services, or locations..."
-              className="search-input"
-              disabled={isLoading}
-            />
-            <button type="submit" disabled={isLoading} className="btn-search">
-              {isLoading ? 'Searching...' : 'Search'}
-            </button>
-          </div>
-        </form>
+        {/* Hero Search Section */}
+        <SearchHero
+          onSearch={handleSearch}
+          isLoading={isLoading}
+          recentSearches={[]}
+        />
+
+        {/* Filter Panel */}
+        <FilterPanel
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          hasUserLocation={!!userLocation}
+        />
 
         {error && <div className="error-message">{error}</div>}
 
-        {results && (
-          <div className="search-results">
-            <h2>
-              Results for "{results.query}" ({results.total} found)
-            </h2>
+        {/* Show recommendations when no search results */}
+        {!results && !error && !isLoading && (
+          <RecommendationsSections
+            forYou={[]}
+            topPicks={[]}
+            recentlyViewed={[]}
+            onActivityClick={(id) => navigate(`/business/${id}`)}
+            onRegionClick={handleRegionClick}
+          />
+        )}
 
-            {results.results.length === 0 ? (
-              <p className="no-results">No results found. Try a different search term.</p>
-            ) : (
-              <ul className="results-list">
-                {results.results.map((result) => (
-                  <li key={result.id} className="result-item">
-                    <div className="result-header">
-                      <h3>{result.name}</h3>
-                      <span className="result-rating">★ {result.rating.toFixed(1)}</span>
-                    </div>
-                    <p className="result-description">{result.description}</p>
-                    <span className="result-category">{result.category}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+        {/* Results Section with Map and List */}
+        {results && (
+          <div className="results-section">
+            <div className="results-header">
+              <h2>
+                {results.query && `Results for "${results.query}"`} ({results.total} found)
+              </h2>
+              
+              {/* Mobile map toggle */}
+              <button
+                className="mobile-map-toggle"
+                onClick={() => setShowMap(!showMap)}
+              >
+                {showMap ? '📋 Show List' : '🗺️ Show Map'}
+              </button>
+            </div>
+
+            <div className={`results-layout ${showMap ? 'show-map' : 'show-list'}`}>
+              {/* Results List */}
+              <div className="results-list-container">
+                {results.results.length === 0 ? (
+                  <div className="no-results">
+                    <p>No results found. Try adjusting your filters or search area.</p>
+                  </div>
+                ) : (
+                  <ul className="results-list">
+                    {results.results.map((result) => (
+                      <li
+                        key={result.id}
+                        className={`result-item ${
+                          highlightedId === result.id ? 'result-item-highlighted' : ''
+                        }`}
+                        onClick={() => navigate(`/business/${result.id}`)}
+                        onMouseEnter={() => handleActivityCardHover(result.id)}
+                        onMouseLeave={() => handleActivityCardHover(null)}
+                      >
+                        <div className="result-header">
+                          <h3>{result.name}</h3>
+                          <span className="result-rating">★ {result.rating.toFixed(1)}</span>
+                        </div>
+                        <p className="result-description">{result.description}</p>
+                        <div className="result-footer">
+                          <span className="result-category">{result.category}</span>
+                          {result.priceFrom && (
+                            <span className="result-price">From R{result.priceFrom}</span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Map View */}
+              <div className="results-map-container">
+                <ActivityMap
+                  activities={results.results}
+                  userLocation={userLocation}
+                  highlightedId={highlightedId}
+                  onMarkerClick={handleMarkerClick}
+                  onMarkerHover={handleActivityCardHover}
+                  onBoundsChange={handleMapBoundsChange}
+                  center={mapCenter}
+                  zoom={mapZoom}
+                />
+              </div>
+            </div>
           </div>
         )}
 
-        {!results && !error && (
-          <div className="search-placeholder">
-            <p>Enter a search query to get started</p>
+        {isLoading && (
+          <div className="loading-state">
+            <p>Searching for amazing experiences...</p>
           </div>
         )}
       </main>
+
+      <Cart />
     </div>
   )
 }

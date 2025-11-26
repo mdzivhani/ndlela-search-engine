@@ -7,6 +7,20 @@ export interface User {
   id: string
   email: string
   name: string
+  phone?: string
+  location?: string
+  city?: string
+  province?: string
+  profilePicture?: string
+  createdAt?: string
+}
+
+export interface UpdateProfileRequest {
+  name?: string
+  phone?: string
+  location?: string
+  city?: string
+  province?: string
 }
 
 export interface LoginRequest {
@@ -27,4 +41,5 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, name: string) => Promise<void>
   logout: () => void
+  updateUser: (partial: Partial<User>) => void
 }

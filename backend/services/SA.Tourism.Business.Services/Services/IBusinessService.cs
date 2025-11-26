@@ -6,7 +6,7 @@ namespace SA.Tourism.Business.Services
 {
     public interface IBusinessService
     {
-        Task<Business> CreateBusinessAsync(Business business);
-        Task<Business?> GetBusinessAsync(Guid id);
+        Task<Models.Business> CreateBusinessAsync(Models.Business business);
+        Task<Models.Business?> GetBusinessAsync(Guid id);
     }
 }

@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:15
@@ -9,7 +8,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - '5433:5432'
 
   adminer:
     image: adminer
@@ -18,12 +17,16 @@ services:
 
   business-api:
     build:
-      context: ./backend/services/SA.Tourism.Business.Api
-      dockerfile: Dockerfile
+      context: ./backend/services
+      dockerfile: SA.Tourism.Business.Api/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - BUSINESS_DB_CONN=Host=postgres;Database=ndlela;Username=postgres;Password=postgres
-      - JWT_KEY=dev-secret-key-please-change
+      - ConnectionStrings__BusinessDb=Host=postgres;Database=ndlela;Username=postgres;Password=postgres
+      - ASPNETCORE_URLS=http://+:80
+      - JWT_KEY=dev-secret-key-should-be-32-characters-long!
+    volumes:
+      - dpkeys:/root/.aspnet/DataProtection-Keys
     depends_on:
       - postgres
     ports:
@@ -31,11 +34,14 @@ services:
 
   auth-api:
     build:
-      context: ./backend/services/SA.Tourism.Auth.Api
-      dockerfile: Dockerfile
+      context: ./backend/services
+      dockerfile: SA.Tourism.Auth.Api/Dockerfile
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - JWT_KEY=dev-secret-key-please-change
+      - ASPNETCORE_URLS=http://+:80
+      - JWT_KEY=dev-secret-key-should-be-32-characters-long!
+    volumes:
+      - dpkeys:/root/.aspnet/DataProtection-Keys
     ports:
       - '5002:80'
 
@@ -51,3 +57,4 @@ services:
 
 volumes:
   pgdata:
+  dpkeys:

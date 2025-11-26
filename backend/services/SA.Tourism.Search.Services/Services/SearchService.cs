@@ -33,7 +33,7 @@ namespace SA.Tourism.Search.Services
             }
             if (!string.IsNullOrEmpty(region)) results = results.Where(b => b.RegionCode == region);
             if (minStars.HasValue) results = results.Where(b => (b.StarRating ?? 0) >= minStars.Value);
-            return Task.FromResult(results.OrderByDescending(b => b.StarRating).ThenBy(b => b.Name));
+            return Task.FromResult(results.OrderByDescending(b => b.StarRating).ThenBy(b => b.Name).AsEnumerable());
         }
     }
 }
