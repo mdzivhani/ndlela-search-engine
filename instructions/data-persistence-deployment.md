@@ -537,18 +537,16 @@ docker logs ndlela-express-server --tail 50
 ## Summary
 
 ### Current State
-- ❌ **Users**: In-memory (lost on redeploy)
+- ✅ **Users**: Stored in PostgreSQL via Express (bcrypt + JWT)
 - ✅ **Business Data**: PostgreSQL with Docker volumes (persistent)
 - ✅ **Database**: Fully persisted across restarts
 - ❌ **Tokens**: Development-only format
 - ❌ **Passwords**: Plain text (insecure)
 
 ### Required Changes for Production
-1. Move user storage to PostgreSQL database
-2. Add bcrypt password hashing
-3. Implement proper JWT tokens with expiration
-4. Set up automated daily backups
-5. Test full backup and restore procedure
+1. Set up automated daily backups
+2. Test full backup and restore procedure
+3. Optional: migrate to dedicated .NET Auth microservice later
 
 ### Data Persistence Matrix
 

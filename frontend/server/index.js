@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
 require('dotenv').config();
+const { migrate } = require('./migrate');
 
 const authRouter = require('./routes/auth.router');
 const searchRouter = require('./routes/search.router');
@@ -24,4 +25,13 @@ app.get('/', (req, res) => res.json({ service: 'ndlela-search-engine', status: '
 app.get('/health', (req, res) => res.json({ status: 'healthy' }));
 
 const port = process.env.PORT || 3001;
-app.listen(port, () => console.log(`Server listening on ${port}`));
+
+// Run DB migrations before starting server
+migrate()
+	.then(() => {
+		app.listen(port, () => console.log(`Server listening on ${port}`));
+	})
+	.catch((err) => {
+		console.error('Migration failed:', err);
+		process.exit(1);
+	});
