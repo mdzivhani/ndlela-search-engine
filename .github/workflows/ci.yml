@@ -1,3 +1,12 @@
+# CI Workflow
+# 
+# IMPORTANT: File Path Structure
+# - Solution file: ./Ndlela Search Engine.sln (at repository root)
+# - Backend projects: ./backend/services/*/
+# - Frontend client: ./frontend/client/
+# - Frontend server: ./frontend/server/
+# - Dockerfiles: Located in each service directory
+
 name: CI
 
 on:
@@ -5,6 +14,11 @@ on:
     branches: [ main, dev ]
   pull_request:
     branches: [ main, dev ]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
 
 env:
   NODE_VERSION: '20'
@@ -22,22 +36,22 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet-version }}
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore "Ndlela Search Engine.sln"
 
       - name: Build backend
-        run: dotnet build --no-restore -c Release --verbosity normal
+        run: dotnet build "Ndlela Search Engine.sln" --no-restore -c Release --verbosity normal
 
       - name: Run backend tests
-        run: dotnet test --no-build -c Release --verbosity normal
+        run: dotnet test "Ndlela Search Engine.sln" --no-build -c Release --verbosity normal
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-test-results
           path: |
@@ -56,8 +70,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: frontend/client/package-lock.json
 
       - name: Install client dependencies
         working-directory: frontend/client
@@ -73,7 +85,7 @@ jobs:
 
       - name: Upload build artifacts
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: frontend/client/dist
@@ -88,30 +100,30 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Build Business API image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
-          context: backend/services/SA.Tourism.Business.Api
-          file: backend/services/SA.Tourism.Business.Api/Dockerfile
+          context: ./backend/services
+          file: ./backend/services/SA.Tourism.Business.Api/Dockerfile
           push: false
           tags: satourism/business-api:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Build Auth API image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
-          context: backend/services/SA.Tourism.Auth.Api
-          file: backend/services/SA.Tourism.Auth.Api/Dockerfile
+          context: ./backend/services
+          file: ./backend/services/SA.Tourism.Auth.Api/Dockerfile
           push: false
           tags: satourism/auth-api:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Build Express Server image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: frontend/server
           file: frontend/server/Dockerfile
@@ -143,7 +155,7 @@ jobs:
 
       - name: Post PR status comment
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             github.rest.issues.createComment({

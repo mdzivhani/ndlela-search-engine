@@ -1,7 +1,9 @@
 FROM node:20-alpine AS build
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci --silent
+# Note: Using npm install instead of npm ci because package-lock.json is not committed
+# For reproducible builds, consider committing package-lock.json and using npm ci
+COPY package.json ./
+RUN npm install
 COPY . .
 RUN npm run build
 

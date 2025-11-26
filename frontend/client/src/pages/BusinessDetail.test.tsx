@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import BusinessDetail from './BusinessDetail';
 import React from 'react';
+import { CartProvider } from '../contexts/CartContext';
+import { AuthProvider } from '../contexts/AuthContext';
 
 // Mock react-leaflet to avoid DOM/Leaflet complexities in jsdom
 vi.mock('react-leaflet', () => ({
@@ -20,11 +22,15 @@ vi.mock('../data/extendedMockBusinesses', async () => {
 describe('BusinessDetail compact layout', () => {
   it('renders multi-column services grid and compact hero', () => {
     render(
-      <MemoryRouter initialEntries={["/business/0"]}>
-        <Routes>
-          <Route path="/business/:id" element={<BusinessDetail />} />
-        </Routes>
-      </MemoryRouter>
+      <AuthProvider>
+        <CartProvider>
+          <MemoryRouter initialEntries={["/business/1"]}>
+            <Routes>
+              <Route path="/business/:id" element={<BusinessDetail />} />
+            </Routes>
+          </MemoryRouter>
+        </CartProvider>
+      </AuthProvider>
     );
 
     // Hero adjustments

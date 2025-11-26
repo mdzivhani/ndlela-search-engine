@@ -20,7 +20,8 @@ app.use('/api/auth', authRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/operator', operatorRouter);
 
-app.get('/', (req, res) => res.json({ service: 'satourism-server', status: 'ok' }));
+app.get('/', (req, res) => res.json({ service: 'ndlela-search-engine', status: 'ok' }));
+app.get('/health', (req, res) => res.json({ status: 'healthy' }));
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => console.log(`Server listening on ${port}`));
