@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { login, isLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -20,7 +21,8 @@ export default function Login() {
 
     try {
       await login(email, password)
-      navigate('/search')
+      const from = (location.state as any)?.from?.pathname || '/search'
+      navigate(from, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     }

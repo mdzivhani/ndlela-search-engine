@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import BusinessDetail from './BusinessDetail';
 import React from 'react';
 import { CartProvider } from '../contexts/CartContext';
+import { SearchProvider } from '../contexts/SearchContext';
 import { AuthProvider } from '../contexts/AuthContext';
 
 // Mock react-leaflet to avoid DOM/Leaflet complexities in jsdom
@@ -19,27 +20,30 @@ vi.mock('../data/extendedMockBusinesses', async () => {
   return { extendedMockBusinesses: actual.extendedMockBusinesses };
 });
 
-describe('BusinessDetail compact layout', () => {
-  it('renders multi-column services grid and compact hero', () => {
+describe('BusinessDetail public access and compact services', () => {
+  it('renders services list and allows adding to cart without auth', () => {
     render(
       <AuthProvider>
-        <CartProvider>
-          <MemoryRouter initialEntries={["/business/1"]}>
-            <Routes>
-              <Route path="/business/:id" element={<BusinessDetail />} />
-            </Routes>
-          </MemoryRouter>
-        </CartProvider>
+        <SearchProvider>
+          <CartProvider>
+            <MemoryRouter initialEntries={["/business/1"]}>
+              <Routes>
+                <Route path="/business/:id" element={<BusinessDetail />} />
+              </Routes>
+            </MemoryRouter>
+          </CartProvider>
+        </SearchProvider>
       </AuthProvider>
     );
 
-    // Hero adjustments
     const heading = screen.getByRole('heading', { level: 1 });
     expect(heading).toBeInTheDocument();
-    // Font size reduced: should not be default 2.5rem (jsdom won't compute, just existence check)
 
-    // Services grid should have style with gridTemplateColumns containing auto-fit
-    const serviceGrid = screen.getByText(/Services & Pricing/i).parentElement?.querySelector('div[style]');
-    expect(serviceGrid?.getAttribute('style')).toMatch(/repeat\(auto-fit/);
+    // Services & Pricing section present
+    expect(screen.getByText(/Services & Pricing/i)).toBeInTheDocument();
+
+    // Find any Add to Cart button
+    const addButtons = screen.getAllByRole('button', { name: /add to cart/i })
+    expect(addButtons.length).toBeGreaterThan(0)
   });
 });

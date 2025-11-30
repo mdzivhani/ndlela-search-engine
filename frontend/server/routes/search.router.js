@@ -84,8 +84,8 @@ function verifyToken(req, res, next) {
   next();
 }
 
-// Search endpoint
-router.get('/', verifyToken, async (req, res) => {
+// Search endpoint - now public (no auth required)
+router.get('/', async (req, res) => {
   try {
     const q = (req.query.q || '').toLowerCase();
     const limit = parseInt(req.query.limit) || 10;
@@ -118,8 +118,8 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
-// Search by category endpoint
-router.get('/category', verifyToken, async (req, res) => {
+// Search by category endpoint - now public (no auth required)
+router.get('/category', async (req, res) => {
   try {
     const category = (req.query.category || '').toLowerCase();
     const limit = parseInt(req.query.limit) || 10;

@@ -1,8 +1,12 @@
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 import './Cart.css';
 
 export default function Cart() {
   const { items, removeFromCart, updateQuantity, getTotalPrice, getTotalItems } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   if (items.length === 0) {
     return null; // Don't show cart if empty
@@ -60,8 +64,17 @@ export default function Cart() {
           <span>Total:</span>
           <span className="total-price">R{getTotalPrice().toLocaleString()}</span>
         </div>
-        <button className="checkout-btn" disabled>
-          Checkout (Coming Soon)
+        <button 
+          className="checkout-btn" 
+          onClick={() => {
+            if (user) {
+              navigate('/checkout')
+            } else {
+              navigate('/login', { state: { from: { pathname: '/checkout' } } })
+            }
+          }}
+        >
+          {user ? 'Checkout' : 'Login to Checkout'}
         </button>
       </div>
     </div>

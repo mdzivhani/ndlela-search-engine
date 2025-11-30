@@ -5,6 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import SearchHero from './SearchHero'
+import { SearchProvider } from '../contexts/SearchContext'
 import { SearchRequest } from '../types/search'
 
 describe('SearchHero - Compact Layout', () => {
@@ -15,7 +16,7 @@ describe('SearchHero - Compact Layout', () => {
   })
 
   it('renders in compact layout with all form fields', () => {
-    render(<SearchHero onSearch={mockOnSearch} isLoading={false} />)
+    render(<SearchProvider><SearchHero onSearch={mockOnSearch} isLoading={false} /></SearchProvider>)
 
     expect(screen.getByText('Find activities and stays near you')).toBeInTheDocument()
     expect(screen.getByLabelText('Where')).toBeInTheDocument()
@@ -27,14 +28,14 @@ describe('SearchHero - Compact Layout', () => {
   })
 
   it('renders compact guests selector with adult and child counters', () => {
-    render(<SearchHero onSearch={mockOnSearch} isLoading={false} />)
+    render(<SearchProvider><SearchHero onSearch={mockOnSearch} isLoading={false} /></SearchProvider>)
 
     expect(screen.getByText('2 Adults')).toBeInTheDocument()
     expect(screen.getByText('0 Children')).toBeInTheDocument()
   })
 
   it('updates adult count when +/- buttons are clicked', () => {
-    render(<SearchHero onSearch={mockOnSearch} isLoading={false} />)
+    render(<SearchProvider><SearchHero onSearch={mockOnSearch} isLoading={false} /></SearchProvider>)
 
     const increaseBtn = screen.getAllByLabelText('Increase adults')[0]
     const decreaseBtn = screen.getAllByLabelText('Decrease adults')[0]
@@ -47,7 +48,7 @@ describe('SearchHero - Compact Layout', () => {
   })
 
   it('updates children count when +/- buttons are clicked', () => {
-    render(<SearchHero onSearch={mockOnSearch} isLoading={false} />)
+    render(<SearchProvider><SearchHero onSearch={mockOnSearch} isLoading={false} /></SearchProvider>)
 
     const increaseBtn = screen.getAllByLabelText('Increase children')[0]
     fireEvent.click(increaseBtn)
@@ -58,7 +59,7 @@ describe('SearchHero - Compact Layout', () => {
   })
 
   it('prevents adults from going below 1', () => {
-    render(<SearchHero onSearch={mockOnSearch} isLoading={false} />)
+    render(<SearchProvider><SearchHero onSearch={mockOnSearch} isLoading={false} /></SearchProvider>)
 
     const decreaseBtn = screen.getAllByLabelText('Decrease adults')[0]
     fireEvent.click(decreaseBtn)
@@ -67,14 +68,14 @@ describe('SearchHero - Compact Layout', () => {
   })
 
   it('prevents children from going below 0', () => {
-    render(<SearchHero onSearch={mockOnSearch} isLoading={false} />)
+    render(<SearchProvider><SearchHero onSearch={mockOnSearch} isLoading={false} /></SearchProvider>)
 
     const decreaseBtn = screen.getAllByLabelText('Decrease children')[0]
     expect(decreaseBtn).toBeDisabled()
   })
 
   it('submits search with all fields populated', async () => {
-    render(<SearchHero onSearch={mockOnSearch} isLoading={false} />)
+    render(<SearchProvider><SearchHero onSearch={mockOnSearch} isLoading={false} /></SearchProvider>)
 
     const locationInput = screen.getByLabelText('Where')
     const checkInInput = screen.getByLabelText('Check-in')
@@ -104,7 +105,7 @@ describe('SearchHero - Compact Layout', () => {
   })
 
   it('submits search with only location when other fields are empty', async () => {
-    render(<SearchHero onSearch={mockOnSearch} isLoading={false} />)
+    render(<SearchProvider><SearchHero onSearch={mockOnSearch} isLoading={false} /></SearchProvider>)
 
     const locationInput = screen.getByLabelText('Where')
     const searchButton = screen.getByRole('button', { name: 'Search' })
@@ -124,7 +125,7 @@ describe('SearchHero - Compact Layout', () => {
   })
 
   it('excludes "All" category from search params', async () => {
-    render(<SearchHero onSearch={mockOnSearch} isLoading={false} />)
+    render(<SearchProvider><SearchHero onSearch={mockOnSearch} isLoading={false} /></SearchProvider>)
 
     const categorySelect = screen.getByLabelText('Category')
     const searchButton = screen.getByRole('button', { name: 'Search' })
@@ -142,7 +143,7 @@ describe('SearchHero - Compact Layout', () => {
   })
 
   it('disables all inputs when isLoading is true', () => {
-    render(<SearchHero onSearch={mockOnSearch} isLoading={true} />)
+    render(<SearchProvider><SearchHero onSearch={mockOnSearch} isLoading={true} /></SearchProvider>)
 
     expect(screen.getByLabelText('Where')).toBeDisabled()
     expect(screen.getByLabelText('Check-in')).toBeDisabled()
@@ -152,7 +153,7 @@ describe('SearchHero - Compact Layout', () => {
   })
 
   it('shows suggestions when location input is focused', async () => {
-    render(<SearchHero onSearch={mockOnSearch} isLoading={false} />)
+    render(<SearchProvider><SearchHero onSearch={mockOnSearch} isLoading={false} /></SearchProvider>)
 
     const locationInput = screen.getByLabelText('Where')
     fireEvent.focus(locationInput)
@@ -165,7 +166,7 @@ describe('SearchHero - Compact Layout', () => {
   })
 
   it('hides suggestions after quick search', async () => {
-    render(<SearchHero onSearch={mockOnSearch} isLoading={false} />)
+    render(<SearchProvider><SearchHero onSearch={mockOnSearch} isLoading={false} /></SearchProvider>)
 
     const locationInput = screen.getByLabelText('Where')
     fireEvent.focus(locationInput)
@@ -191,11 +192,13 @@ describe('SearchHero - Compact Layout', () => {
     ]
 
     render(
-      <SearchHero
-        onSearch={mockOnSearch}
-        isLoading={false}
-        recentSearches={recentSearches}
-      />
+      <SearchProvider>
+        <SearchHero
+          onSearch={mockOnSearch}
+          isLoading={false}
+          recentSearches={recentSearches}
+        />
+      </SearchProvider>
     )
 
     const locationInput = screen.getByLabelText('Where')
@@ -223,11 +226,13 @@ describe('SearchHero - Compact Layout', () => {
     ]
 
     render(
-      <SearchHero
-        onSearch={mockOnSearch}
-        isLoading={false}
-        recentSearches={recentSearches}
-      />
+      <SearchProvider>
+        <SearchHero
+          onSearch={mockOnSearch}
+          isLoading={false}
+          recentSearches={recentSearches}
+        />
+      </SearchProvider>
     )
 
     const locationInput = screen.getByLabelText('Where')
@@ -246,7 +251,7 @@ describe('SearchHero - Compact Layout', () => {
   })
 
   it('enforces minimum check-out date based on check-in', () => {
-    render(<SearchHero onSearch={mockOnSearch} isLoading={false} />)
+    render(<SearchProvider><SearchHero onSearch={mockOnSearch} isLoading={false} /></SearchProvider>)
 
     const checkInInput = screen.getByLabelText('Check-in')
     const checkOutInput = screen.getByLabelText('Check-out')
