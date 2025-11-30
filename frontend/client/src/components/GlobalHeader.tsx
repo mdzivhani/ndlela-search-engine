@@ -84,7 +84,9 @@ export default function GlobalHeader() {
           {menuOpen && (
             <div role="menu" className="dropdown-menu" style={{ position:'absolute', right:0, top:'110%', background:'#fff', border:'1px solid var(--gray-200)', borderRadius:8, boxShadow:'0 6px 24px rgba(0,0,0,0.08)', minWidth:180, zIndex:10 }}>
               {!user ? (
-                <button role="menuitem" className="dropdown-item" onClick={() => navigate('/login')}>Login / Register</button>
+                <>
+                  <button role="menuitem" className="dropdown-item" onClick={() => { navigate('/profile'); setMenuOpen(false) }}>Profile (stub)</button>
+                </>
               ) : (
                 <>
                   <button role="menuitem" className="dropdown-item" onClick={() => { navigate('/profile'); setMenuOpen(false) }}>Profile</button>

@@ -6,8 +6,6 @@ import { CartProvider } from './contexts/CartContext'
 import { SearchProvider } from './contexts/SearchContext'
 import { FavouritesProvider } from './contexts/FavouritesContext'
 import App from './App'
-import Login from './pages/Login'
-import Register from './pages/Register'
 import Search from './pages/Search'
 import Favourites from './pages/Favourites'
 import Profile from './pages/Profile'
@@ -32,8 +30,6 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Navigate to='/search' replace /> },
-      { path: 'login', element: <Login /> },
-      { path: 'register', element: <Register /> },
       { path: 'search', element: <Search /> },
       { path: 'favourites', element: <Favourites /> },
       {

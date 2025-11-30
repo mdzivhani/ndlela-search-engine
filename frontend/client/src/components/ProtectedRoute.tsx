@@ -7,20 +7,6 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth()
-  const location = useLocation()
-
-  if (isLoading) {
-    return (
-      <div className="loading-container">
-        <p>Loading...</p>
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location }} />
-  }
-
+  // Temporarily disable auth guard to allow all access
   return <>{children}</>
 }
