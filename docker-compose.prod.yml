@@ -35,7 +35,7 @@ services:
     networks:
       - ndlela-network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/health"]
+      test: ["CMD-SHELL", "timeout 5s bash -c '</dev/tcp/localhost/80' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -62,7 +62,7 @@ services:
     networks:
       - ndlela-network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/health"]
+      test: ["CMD-SHELL", "timeout 5s bash -c '</dev/tcp/localhost/80' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -84,6 +84,12 @@ services:
       - auth-api
     networks:
       - ndlela-network
+    volumes:
+      - ./uploads:/app/uploads
+      - /home/mulalo/logs/ndlelaSearchEngineLogs:/var/log/ndlela
+    volumes:
+      - ./uploads:/app/uploads
+      - /home/mulalo/logs/ndlelaSearchEngineLogs:/var/log/ndlela
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
       interval: 30s

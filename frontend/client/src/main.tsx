@@ -1,55 +1,69 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { CartProvider } from './contexts/CartContext'
+import { SearchProvider } from './contexts/SearchContext'
+import { FavouritesProvider } from './contexts/FavouritesContext'
 import App from './App'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Search from './pages/Search'
+import Favourites from './pages/Favourites'
 import Profile from './pages/Profile'
 import BusinessDetail from './pages/BusinessDetail'
+import Checkout from './pages/Checkout'
 import ProtectedRoute from './components/ProtectedRoute'
 import './styles.css'
 
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: (
+      <AuthProvider>
+        <SearchProvider>
+          <FavouritesProvider>
+            <CartProvider>
+              <App />
+            </CartProvider>
+          </FavouritesProvider>
+        </SearchProvider>
+      </AuthProvider>
+    ),
+    children: [
+      { index: true, element: <Navigate to='/search' replace /> },
+      { path: 'login', element: <Login /> },
+      { path: 'register', element: <Register /> },
+      { path: 'search', element: <Search /> },
+      { path: 'favourites', element: <Favourites /> },
+      {
+        path: 'checkout',
+        element: (
+          <ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'profile',
+        element: (
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        ),
+      },
+      { path: 'business/:id', element: <BusinessDetail /> },
+    ],
+  },
+], {
+  future: {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true,
+  },
+})
+
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <CartProvider>
-          <Routes>
-            <Route path='/' element={<App />}>
-              <Route index element={<Navigate to='/search' replace />} />
-              <Route path='login' element={<Login />} />
-              <Route path='register' element={<Register />} />
-              <Route
-                path='search'
-                element={
-                  <ProtectedRoute>
-                    <Search />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path='profile'
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path='business/:id'
-                element={
-                  <ProtectedRoute>
-                    <BusinessDetail />
-                  </ProtectedRoute>
-                }
-              />
-            </Route>
-          </Routes>
-        </CartProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <RouterProvider router={router} />
   </React.StrictMode>
 )

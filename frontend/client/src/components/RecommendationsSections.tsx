@@ -3,6 +3,9 @@
  * Shows "For You", "Top Picks Near You", "Recently Viewed", and "Explore by Region"
  */
 import React from 'react'
+import { Card } from '../ui/Card'
+import { Badge } from '../ui/Badge'
+import { Button } from '../ui/Button'
 import { SearchResult } from '../types/search'
 
 interface RecommendationsSectionsProps {
@@ -74,21 +77,25 @@ function ActivityCard({
   onClick: (id: string) => void
 }) {
   return (
-    <div className="recommendation-card" onClick={() => onClick(activity.id)}>
-      {activity.thumbnailUrl && (
-        <img src={activity.thumbnailUrl} alt={activity.name} className="recommendation-image" loading="lazy" />
-      )}
-      <div className="recommendation-content">
-        <h4>{activity.name}</h4>
-        <p className="recommendation-category">{activity.category}</p>
-        <div className="recommendation-footer">
-          {activity.rating && <span className="recommendation-rating">★ {activity.rating.toFixed(1)}</span>}
-          {activity.priceFrom && (
-            <span className="recommendation-price">From R{activity.priceFrom}</span>
-          )}
+    <Card style={{ cursor: 'pointer', overflow: 'hidden', padding: 0 }}>
+      <div onClick={() => onClick(activity.id)}>
+        {activity.thumbnailUrl && (
+          <img src={activity.thumbnailUrl} alt={activity.name} className="recommendation-image" loading="lazy" />
+        )}
+        <div className="recommendation-content">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <h4 style={{ margin: 0 }}>{activity.name}</h4>
+            {activity.priceFrom && (
+              <span style={{ color: 'var(--primary-color)', fontWeight: 700 }}>From R{activity.priceFrom}</span>
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {activity.category && <Badge>{activity.category}</Badge>}
+            {activity.rating && <span className="recommendation-rating">★ {activity.rating.toFixed(1)}</span>}
+          </div>
         </div>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -104,7 +111,7 @@ export default function RecommendationsSections({
       {/* For You Section */}
       {forYou.length > 0 && (
         <section className="recommendations-section">
-          <h3>For You</h3>
+          <h3 style={{ color: 'var(--primary-color)' }}>For You</h3>
           <p className="section-subtitle">Personalized picks based on your preferences</p>
           <div className="recommendations-scroll">
             {forYou.map((activity) => (
@@ -117,7 +124,7 @@ export default function RecommendationsSections({
       {/* Top Picks Near You */}
       {topPicks.length > 0 && (
         <section className="recommendations-section">
-          <h3>Top Picks Near You</h3>
+          <h3 style={{ color: 'var(--primary-color)' }}>Top Picks Near You</h3>
           <p className="section-subtitle">Highly rated activities in your area</p>
           <div className="recommendations-scroll">
             {topPicks.map((activity) => (
@@ -130,7 +137,7 @@ export default function RecommendationsSections({
       {/* Recently Viewed */}
       {recentlyViewed.length > 0 && (
         <section className="recommendations-section">
-          <h3>Recently Viewed</h3>
+          <h3 style={{ color: 'var(--primary-color)' }}>Recently Viewed</h3>
           <p className="section-subtitle">Continue exploring where you left off</p>
           <div className="recommendations-scroll">
             {recentlyViewed.map((activity) => (
@@ -142,13 +149,14 @@ export default function RecommendationsSections({
 
       {/* Explore by Region */}
       <section className="recommendations-section">
-        <h3>Explore by Region</h3>
+        <h3 style={{ color: 'var(--primary-color)' }}>Explore by Region</h3>
         <p className="section-subtitle">Discover destinations across South Africa</p>
         <div className="regions-grid">
           {SA_REGIONS.map((region) => (
-            <div
+            <Card
               key={region.name}
-              className="region-card"
+              style={{ padding: 0, overflow: 'hidden', cursor: 'pointer' }}
+              as="div"
               onClick={() => onRegionClick(region.name, region.latitude, region.longitude)}
             >
               <img src={region.imageUrl} alt={region.name} className="region-image" loading="lazy" />
@@ -156,7 +164,7 @@ export default function RecommendationsSections({
                 <h4>{region.name}</h4>
                 <p>{region.province}</p>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       </section>

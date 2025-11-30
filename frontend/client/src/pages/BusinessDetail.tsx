@@ -2,8 +2,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { extendedMockBusinesses } from '../data/extendedMockBusinesses';
 import { useCart } from '../contexts/CartContext';
-import { useState } from 'react';
+import { useSearch } from '../contexts/SearchContext';
+import { useState, useEffect } from 'react';
 import Cart from '../components/Cart';
+import { Card } from '../ui/Card';
+import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -24,9 +28,22 @@ export default function BusinessDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart, isInCart } = useCart();
+  const { searchParams, getTotalGuests } = useSearch();
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   
   const business = id ? extendedMockBusinesses[id] : null;
+
+  // Initialize quantities based on search parameters
+  useEffect(() => {
+    if (business && getTotalGuests() > 0) {
+      const defaultQuantity = getTotalGuests();
+      const initialQuantities: { [key: string]: number } = {};
+      business.services.forEach(service => {
+        initialQuantities[service.id] = defaultQuantity;
+      });
+      setQuantities(initialQuantities);
+    }
+  }, [business, getTotalGuests]);
 
   if (!business) {
     return (
@@ -39,6 +56,7 @@ export default function BusinessDetail() {
     );
   }
 
+  const [scrollZoom, setScrollZoom] = useState(false);
   return (
     <div className="business-detail">
       {/* Header Section */}
@@ -101,133 +119,105 @@ export default function BusinessDetail() {
             {/* Services & Pricing */}
             <section style={{ marginBottom: '34px' }}>
               <h2 style={{ marginBottom: '14px' }}>Services & Pricing</h2>
-              <div style={{ display: 'grid', gap: '14px', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+              <div style={{ display: 'grid', gap: '10px', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
                 {business.services.map((service) => {
                   const quantity = quantities[service.id] || 1;
                   const inCart = isInCart(service.id);
                   
                   return (
-                    <div 
+                    <Card 
                       key={service.id}
                       style={{
-                        border: '1px solid var(--border-color)',
-                        borderRadius: '10px',
-                        padding: '16px',
-                        transition: 'box-shadow 0.25s ease, transform 0.25s ease',
                         backgroundColor: inCart ? 'rgba(0, 87, 183, 0.06)' : 'white',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px'
                       }}
-                      className="service-card"
+                      className="service-card-compact"
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px', gap: '12px' }}>
-                        <div style={{ flex: 1 }}>
-                          <h3 style={{ margin: '0 0 4px 0', color: 'var(--primary-color)', fontSize: '1.05rem', lineHeight: '1.3' }}>{service.name}</h3>
-                          <span style={{ 
-                            fontSize: '0.85rem', 
-                            color: 'var(--gray-600)',
-                            backgroundColor: 'var(--gray-100)',
-                            padding: '3px 8px',
-                            borderRadius: '10px',
-                            display: 'inline-block'
+                      {/* Service Info */}
+                      <div style={{ flex: '1', minWidth: '0' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                          <h3 style={{ 
+                            margin: '0', 
+                            color: 'var(--primary-color)', 
+                            fontSize: '0.95rem', 
+                            lineHeight: '1.2',
+                            fontWeight: '600'
                           }}>
-                            {service.category}
-                          </span>
+                            {service.name}
+                          </h3>
+                          <Badge>{service.category}</Badge>
                         </div>
-                        <span style={{ 
-                          fontSize: '1.3rem', 
-                          fontWeight: 'bold',
-                          color: 'var(--primary-color)',
-                          whiteSpace: 'nowrap',
-                          marginLeft: '8px'
+                        <p style={{ 
+                          margin: '0 0 4px 0', 
+                          color: 'var(--text-secondary)', 
+                          lineHeight: '1.4', 
+                          fontSize: '0.85rem',
+                          overflow: 'hidden',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical'
                         }}>
-                          R{service.price.toLocaleString()}
-                        </span>
+                          {service.description}
+                        </p>
+                        <Badge tone="primary" style={{ fontSize: '0.75rem' }}>⏱️ {service.duration}</Badge>
                       </div>
-                      <p style={{ margin: '10px 0 12px', color: 'var(--text-secondary)', lineHeight: '1.5', fontSize: '0.9rem' }}>
-                        {service.description}
-                      </p>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '8px', gap: '12px' }}>
+                      
+                      {/* Price */}
+                      <div style={{ 
+                        fontSize: '1.1rem', 
+                        fontWeight: 'bold',
+                        color: 'var(--primary-color)',
+                        textAlign: 'center',
+                        minWidth: '80px'
+                      }}>
+                        R{service.price.toLocaleString()}
+                      </div>
+                      
+                      {/* Quantity Controls */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <Button variant="ghost" small
+                          onClick={() => setQuantities(prev => ({ ...prev, [service.id]: Math.max(1, quantity - 1) }))}
+                        >
+                          −
+                        </Button>
                         <span style={{ 
-                          fontSize: '0.9rem', 
-                          color: 'var(--text-muted)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '5px'
+                          minWidth: '30px', 
+                          textAlign: 'center', 
+                          fontWeight: '600', 
+                          fontSize: '0.8rem',
+                          color: 'var(--text-primary)'
                         }}>
-                          ⏱️ {service.duration}
+                          {quantity}
                         </span>
-                        
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--gray-50)', padding: '4px 10px', borderRadius: '6px' }}>
-                            <button
-                              onClick={() => setQuantities(prev => ({ ...prev, [service.id]: Math.max(1, quantity - 1) }))}
-                              style={{
-                                width: '26px',
-                                height: '26px',
-                                border: '1px solid var(--gray-300)',
-                                background: 'white',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '1rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              −
-                            </button>
-                            <span style={{ minWidth: '42px', textAlign: 'center', fontWeight: '600', fontSize: '0.85rem' }}>
-                              {quantity} {quantity === 1 ? 'person' : 'people'}
-                            </span>
-                            <button
-                              onClick={() => setQuantities(prev => ({ ...prev, [service.id]: quantity + 1 }))}
-                              style={{
-                                width: '26px',
-                                height: '26px',
-                                border: '1px solid var(--gray-300)',
-                                background: 'white',
-                                borderRadius: '4px',
-                                cursor: 'pointer',
-                                fontSize: '1rem',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                            >
-                              +
-                            </button>
-                          </div>
-                          
-                          <button
-                            onClick={() => {
-                              addToCart({
-                                serviceId: service.id,
-                                businessId: business.id,
-                                businessName: business.name,
-                                serviceName: service.name,
-                                price: service.price,
-                                duration: service.duration,
-                                category: service.category
-                              }, quantity);
-                            }}
-                            style={{
-                              padding: '8px 16px',
-                              background: inCart ? 'var(--secondary-color)' : 'var(--primary-color)',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontWeight: '600',
-                              fontSize: '0.85rem',
-                              transition: 'all 0.3s ease',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {inCart ? '✓ Added' : 'Add to Cart'}
-                          </button>
-                        </div>
+                        <Button variant="ghost" small
+                          onClick={() => setQuantities(prev => ({ ...prev, [service.id]: quantity + 1 }))}
+                        >
+                          +
+                        </Button>
                       </div>
-                    </div>
+                      
+                      {/* Add to Cart Button */}
+                      <Button
+                        onClick={() => {
+                          addToCart({
+                            serviceId: service.id,
+                            businessId: business.id,
+                            businessName: business.name,
+                            serviceName: service.name,
+                            price: service.price,
+                            duration: service.duration,
+                            category: service.category
+                          }, quantity);
+                        }}
+                        variant={inCart ? 'secondary' : 'primary'}
+                        small
+                        style={{ minWidth: '90px' }}
+                      >
+                        {inCart ? 'Added' : 'Add to Cart'}
+                      </Button>
+                    </Card>
                   );
                 })}
               </div>
@@ -291,16 +281,12 @@ export default function BusinessDetail() {
             {/* Map */}
             <section style={{ marginBottom: '26px' }}>
               <h2 style={{ marginBottom: '12px' }}>Location</h2>
-              <div style={{ 
-                border: '1px solid var(--border-color)',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                marginBottom: '12px'
-              }}>
+              <Card style={{ overflow: 'hidden', padding: 0 }}>
                 <MapContainer 
                   center={[business.location.coordinates.lat, business.location.coordinates.lng]} 
                   zoom={13} 
-                  style={{ height: '240px', width: '100%' }}
+                  style={{ height: '300px', width: '100%' }}
+                  scrollWheelZoom={scrollZoom}
                 >
                   <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -313,7 +299,12 @@ export default function BusinessDetail() {
                     </Popup>
                   </Marker>
                 </MapContainer>
-              </div>
+                {!scrollZoom && (
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px 10px' }}>
+                    <Button variant="ghost" small onClick={() => setScrollZoom(true)}>Enable scroll zoom</Button>
+                  </div>
+                )}
+              </Card>
               <div style={{ padding: '12px', background: 'var(--background-secondary)', borderRadius: '8px' }}>
                 <p style={{ margin: '5px 0' }}><strong>{business.location.address}</strong></p>
                 <p style={{ margin: '5px 0', color: 'var(--text-secondary)' }}>
@@ -400,6 +391,17 @@ export default function BusinessDetail() {
         @media (max-width: 768px) {
           .business-detail .container > div { grid-template-columns: 1fr !important; }
           .service-card { padding: 14px !important; }
+        }
+
+        /* Responsive services grid: 3 cols desktop, 2 tablet, 1 mobile */
+        @media (max-width: 1200px) {
+          .service-card-compact { font-size: 0.95em; }
+        }
+        @media (max-width: 1024px) {
+          .business-detail section:nth-of-type(2) > div { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        }
+        @media (max-width: 640px) {
+          .business-detail section:nth-of-type(2) > div { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>

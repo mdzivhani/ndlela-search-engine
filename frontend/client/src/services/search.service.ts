@@ -57,9 +57,7 @@ export async function performSearch(request: SearchRequest): Promise<SearchRespo
   // Sort order
   if (request.sortBy) params.set('sortBy', request.sortBy)
 
-  const response = await fetch(`${API_BASE_URL}/search?${params.toString()}`, {
-    headers: getAuthHeader()
-  })
+  const response = await fetch(`${API_BASE_URL}/search?${params.toString()}`)
 
   if (!response.ok) {
     throw new Error(`Search failed: ${response.statusText}`)
@@ -76,9 +74,7 @@ export async function searchByCategory(
   params.set('category', category)
   params.set('limit', limit.toString())
 
-  const response = await fetch(`${API_BASE_URL}/search/category?${params.toString()}`, {
-    headers: getAuthHeader()
-  })
+  const response = await fetch(`${API_BASE_URL}/search/category?${params.toString()}`)
 
   if (!response.ok) {
     throw new Error(`Category search failed: ${response.statusText}`)

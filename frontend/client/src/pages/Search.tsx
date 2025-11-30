@@ -5,6 +5,9 @@ import { performSearch } from '../services/search.service'
 import { SearchResponse, SearchRequest, MapBounds } from '../types/search'
 import { useGeolocation } from '../hooks/useGeolocation'
 import Cart from '../components/Cart'
+import { Card } from '../ui/Card'
+import { Badge } from '../ui/Badge'
+import { Button } from '../ui/Button'
 import SearchHero from '../components/SearchHero'
 import FilterPanel from '../components/FilterPanel'
 import ActivityMap from '../components/ActivityMap'
@@ -112,23 +115,6 @@ export default function Search() {
       <header className="search-header">
         <div className="header-content">
           <h1>Ndlela Search</h1>
-          <div className="user-info">
-            <button onClick={() => navigate('/profile')} className="btn-profile">
-              <span className="header-avatar-wrapper">
-                {user?.profilePicture ? (
-                  <img src={user.profilePicture} alt="avatar" className="avatar-image avatar-small" />
-                ) : (
-                  <span className="avatar avatar-small avatar-placeholder">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </span>
-                )}
-              </span>
-              <span className="header-username">{user?.name}</span>
-            </button>
-            <button onClick={logout} className="btn-logout">
-              Logout
-            </button>
-          </div>
         </div>
       </header>
 
@@ -149,8 +135,8 @@ export default function Search() {
 
         {error && <div className="error-message">{error}</div>}
 
-        {/* Show recommendations when no search results */}
-        {!results && !error && !isLoading && (
+        {/* Show recommendations when no search results or empty results */}
+        {(!results || (results && results.results.length === 0)) && !error && !isLoading && (
           <RecommendationsSections
             forYou={[]}
             topPicks={[]}
@@ -185,31 +171,42 @@ export default function Search() {
                     <p>No results found. Try adjusting your filters or search area.</p>
                   </div>
                 ) : (
-                  <ul className="results-list">
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
                     {results.results.map((result) => (
-                      <li
+                      <Card
                         key={result.id}
-                        className={`result-item ${
-                          highlightedId === result.id ? 'result-item-highlighted' : ''
-                        }`}
+                        padding={12}
+                        style={{ display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer' }}
                         onClick={() => navigate(`/business/${result.id}`)}
                         onMouseEnter={() => handleActivityCardHover(result.id)}
                         onMouseLeave={() => handleActivityCardHover(null)}
                       >
-                        <div className="result-header">
-                          <h3>{result.name}</h3>
-                          <span className="result-rating">★ {result.rating.toFixed(1)}</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                          <h3 style={{ margin: 0 }}>{result.name}</h3>
+                          <span style={{ color: 'var(--primary-color)', fontWeight: 700 }}>★ {result.rating.toFixed(1)}</span>
                         </div>
-                        <p className="result-description">{result.description}</p>
-                        <div className="result-footer">
-                          <span className="result-category">{result.category}</span>
+                        <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: 1.4, fontSize: '0.9rem', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                          {result.description}
+                        </p>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                            <Badge>{result.category}</Badge>
+                            {result.region && <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>📍 {result.region}</span>}
+                          </div>
                           {result.priceFrom && (
-                            <span className="result-price">From R{result.priceFrom}</span>
+                            <span style={{ color: 'var(--primary-color)', fontWeight: 700 }}>From R{result.priceFrom}</span>
                           )}
                         </div>
-                      </li>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                          <Button variant='primary' small onClick={() => navigate(`/business/${result.id}`)}>View</Button>
+                        </div>
+                      </Card>
                     ))}
-                  </ul>
+                    <style>{`
+                      @media (max-width: 1024px) { .search-container .results-list-container > div { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+                      @media (max-width: 640px) { .search-container .results-list-container > div { grid-template-columns: 1fr !important; } }
+                    `}</style>
+                  </div>
                 )}
               </div>
 

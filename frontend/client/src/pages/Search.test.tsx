@@ -1,11 +1,12 @@
 /**
  * Tests for Search page with map-based search functionality
  */
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { vi } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from '../contexts/AuthContext'
 import { CartProvider } from '../contexts/CartContext'
+import { SearchProvider } from '../contexts/SearchContext'
 import Search from './Search'
 import * as searchService from '../services/search.service'
 import * as useGeolocationHook from '../hooks/useGeolocation'
@@ -45,9 +46,11 @@ const renderSearch = () => {
   return render(
     <BrowserRouter>
       <AuthProvider>
-        <CartProvider>
-          <Search />
-        </CartProvider>
+        <SearchProvider>
+          <CartProvider>
+            <Search />
+          </CartProvider>
+        </SearchProvider>
       </AuthProvider>
     </BrowserRouter>
   )
@@ -81,7 +84,9 @@ describe('Search Page', () => {
   })
 
   it('should trigger initial search when user location is available', async () => {
-    renderSearch()
+    await act(async () => {
+      renderSearch()
+    })
 
     await waitFor(() => {
       expect(searchService.performSearch).toHaveBeenCalledWith(
@@ -95,7 +100,9 @@ describe('Search Page', () => {
   })
 
   it('should display search results with map and list', async () => {
-    renderSearch()
+    await act(async () => {
+      renderSearch()
+    })
 
     await waitFor(() => {
       expect(screen.getByText('Table Mountain Tours')).toBeInTheDocument()
@@ -105,7 +112,9 @@ describe('Search Page', () => {
   })
 
   it('should apply filters and trigger search', async () => {
-    renderSearch()
+    await act(async () => {
+      renderSearch()
+    })
 
     await waitFor(() => {
       expect(screen.getByText('Table Mountain Tours')).toBeInTheDocument()
@@ -139,23 +148,25 @@ describe('Search Page', () => {
   it('should show mobile map toggle button on small screens', async () => {
     // Mock mobile viewport
     window.innerWidth = 500
-    renderSearch()
+    await act(async () => {
+      renderSearch()
+    })
     await waitFor(() => {
       expect(screen.getByText(/Show Map/i)).toBeInTheDocument()
     })
   })
 
-  it('should display recommendations when no search results', () => {
+  it('should display recommendations when no search results', async () => {
     vi.spyOn(searchService, 'performSearch').mockResolvedValue({
       results: [],
       total: 0,
       query: '',
     })
-
-    renderSearch()
-
-    waitFor(() => {
-      expect(screen.getByText('Explore by Region')).toBeInTheDocument()
+    await act(async () => {
+      renderSearch()
+    })
+    await waitFor(() => {
+      expect(screen.getByText(/Explore by Region/i)).toBeInTheDocument()
     })
   })
 
@@ -164,7 +175,9 @@ describe('Search Page', () => {
       new Error('Search service unavailable')
     )
 
-    renderSearch()
+    await act(async () => {
+      renderSearch()
+    })
 
     await waitFor(() => {
       expect(screen.getByText(/Search service unavailable/i)).toBeInTheDocument()
@@ -172,18 +185,18 @@ describe('Search Page', () => {
   })
 
   it('should navigate to business detail when clicking a result', async () => {
-    renderSearch()
+    await act(async () => {
+      renderSearch()
+    })
 
     await waitFor(() => {
       expect(screen.getByText('Table Mountain Tours')).toBeInTheDocument()
     })
 
-    const resultItem = screen.getByText('Table Mountain Tours').closest('.result-item')
-    expect(resultItem).toBeInTheDocument()
+    const cardTitle = screen.getByText('Table Mountain Tours')
+    expect(cardTitle).toBeInTheDocument()
     
     // Click should navigate (tested via router mock in integration tests)
-    if (resultItem) {
-      fireEvent.click(resultItem)
-    }
+    fireEvent.click(cardTitle)
   })
 })

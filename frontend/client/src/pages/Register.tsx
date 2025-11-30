@@ -1,15 +1,17 @@
 import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function Register() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { register, isLoading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [name, setName] = useState('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,7 +34,9 @@ export default function Register() {
 
     try {
       await register(email, password, name)
-      navigate('/search')
+      setSuccess('Registration successful!')
+      const from = (location.state as any)?.from?.pathname || '/search'
+      navigate(from, { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
     }
@@ -44,6 +48,7 @@ export default function Register() {
         <h1>Register</h1>
 
         {error && <div className="error-message">{error}</div>}
+        {success && <div className="message-success">{success}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">

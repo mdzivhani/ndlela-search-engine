@@ -4,6 +4,7 @@
  */
 import React, { useState, useCallback, useEffect } from 'react'
 import { SearchRequest } from '../types/search'
+import { useSearch } from '../contexts/SearchContext'
 
 interface SearchHeroProps {
   onSearch: (params: SearchRequest) => void
@@ -35,6 +36,7 @@ const POPULAR_AREAS = [
 ]
 
 export default function SearchHero({ onSearch, isLoading, recentSearches = [] }: SearchHeroProps) {
+  const { setSearchParams } = useSearch()
   const [query, setQuery] = useState('')
   const [location, setLocation] = useState('')
   const [checkIn, setCheckIn] = useState('')
@@ -43,6 +45,16 @@ export default function SearchHero({ onSearch, isLoading, recentSearches = [] }:
   const [children, setChildren] = useState(0)
   const [category, setCategory] = useState('All')
   const [showSuggestions, setShowSuggestions] = useState(false)
+
+  // Focus main search input when header search icon is clicked
+  useEffect(() => {
+    const handler = () => {
+      const el = document.getElementById('location') as HTMLInputElement | null
+      el?.focus()
+    }
+    window.addEventListener('focus-main-search', handler as EventListener)
+    return () => window.removeEventListener('focus-main-search', handler as EventListener)
+  }, [])
 
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
@@ -62,6 +74,15 @@ export default function SearchHero({ onSearch, isLoading, recentSearches = [] }:
       if (location) {
         searchParams.q = location
       }
+
+      // Store search parameters for cart quantity defaults
+      setSearchParams({
+        adults,
+        children,
+        checkIn: checkIn || undefined,
+        checkOut: checkOut || undefined,
+        location: location || undefined,
+      })
 
       onSearch(searchParams)
       setShowSuggestions(false)
