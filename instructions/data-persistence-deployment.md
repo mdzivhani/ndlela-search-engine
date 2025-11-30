@@ -537,11 +537,11 @@ docker logs ndlela-express-server --tail 50
 ## Summary
 
 ### Current State
-- ✅ **Users**: Stored in PostgreSQL via Express (bcrypt + JWT)
+- ✅ **Users**: Stored in PostgreSQL (persistent) accessed via Express API
 - ✅ **Business Data**: PostgreSQL with Docker volumes (persistent)
 - ✅ **Database**: Fully persisted across restarts
-- ❌ **Tokens**: Development-only format
-- ❌ **Passwords**: Plain text (insecure)
+- ✅ **Tokens**: JWT with expiration (configured via `JWT_EXPIRATION`, default 7d)
+- ✅ **Passwords**: Bcrypt hashed (salt rounds = 10)
 
 ### Required Changes for Production
 1. Set up automated daily backups
@@ -552,7 +552,7 @@ docker logs ndlela-express-server --tail 50
 
 | Data Type | Current Storage | Persists on Restart | Persists on Redeploy | Backed Up |
 |-----------|----------------|--------------------|--------------------|-----------|
-| User Accounts | In-Memory Map | ❌ NO | ❌ NO | ❌ NO |
+| User Accounts | PostgreSQL | ✅ YES | ✅ YES | ✅ YES (when backups configured) |
 | User Sessions (tokens) | Browser localStorage | ✅ YES | ⚠️ Only if server has user | ❌ NO |
 | Business Listings | PostgreSQL Volume | ✅ YES | ✅ YES | ✅ YES (manual) |
 | Database Schema | PostgreSQL Volume | ✅ YES | ✅ YES | ✅ YES (manual) |

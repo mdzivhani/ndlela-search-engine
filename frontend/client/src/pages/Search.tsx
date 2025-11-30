@@ -136,7 +136,7 @@ export default function Search() {
         {error && <div className="error-message">{error}</div>}
 
         {/* Show recommendations when no search results or empty results */}
-        {(!results || (results && results.results.length === 0)) && !error && !isLoading && (
+        {(!results || results.results.length === 0) && !error && !isLoading && (
           <RecommendationsSections
             forYou={[]}
             topPicks={[]}

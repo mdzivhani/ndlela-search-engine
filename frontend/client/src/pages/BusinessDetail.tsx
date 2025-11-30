@@ -28,7 +28,7 @@ export default function BusinessDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart, isInCart } = useCart();
-  const { searchParams, getTotalGuests } = useSearch();
+  const { getTotalGuests } = useSearch();
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   
   const business = id ? extendedMockBusinesses[id] : null;
