@@ -67,14 +67,10 @@ export default function Cart() {
         <button 
           className="checkout-btn" 
           onClick={() => {
-            if (user) {
-              navigate('/checkout')
-            } else {
-              navigate('/login', { state: { from: { pathname: '/checkout' } } })
-            }
+            navigate('/checkout')
           }}
         >
-          {user ? 'Checkout' : 'Login to Checkout'}
+          {'Checkout'}
         </button>
       </div>
     </div>
