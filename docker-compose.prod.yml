@@ -129,6 +129,7 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /home/mulalo/applications/lss_construction:/home/mulalo/applications/lss_construction:ro
     depends_on:
       - client
       - express-server
