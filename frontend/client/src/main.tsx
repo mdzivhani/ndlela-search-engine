@@ -7,6 +7,7 @@ import { SearchProvider } from './contexts/SearchContext'
 import { FavouritesProvider } from './contexts/FavouritesContext'
 import App from './App'
 import Search from './pages/Search'
+import Browse from './pages/Browse'
 import Favourites from './pages/Favourites'
 import Profile from './pages/Profile'
 import Auth from './pages/Auth'
@@ -32,6 +33,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to='/search' replace /> },
       { path: 'search', element: <Search /> },
+      { path: 'browse', element: <Browse /> },
       { path: 'favourites', element: <Favourites /> },
       { path: 'login', element: <Auth /> },
       { path: 'register', element: <Auth /> },

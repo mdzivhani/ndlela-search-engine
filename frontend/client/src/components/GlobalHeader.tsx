@@ -28,6 +28,15 @@ export default function GlobalHeader() {
         <Link to="/" style={{ textDecoration:'none', color:'var(--primary-color)', fontWeight:600, fontSize:'1.1rem' }}>Ndlela</Link>
       </div>
       <div className="header-right" style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
+        {/* Browse Icon */}
+        <button
+          aria-label="Browse provinces"
+          className="icon-button"
+          onClick={() => navigate('/browse')}
+        >
+          🗺️
+        </button>
+
         {/* Search Icon */}
         <button
           aria-label="Open search"

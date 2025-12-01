@@ -1909,3 +1909,241 @@ body {
   cursor: pointer;
 }
 .dropdown-item:hover { background: var(--gray-50); }
+
+/* Province and Attraction Cards - Booking.com Style */
+.provinces-container,
+.attractions-container {
+  margin: 2rem 0;
+}
+
+.provinces-header,
+.attractions-header {
+  margin-bottom: 1.5rem;
+}
+
+.provinces-header h2,
+.attractions-header h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.provinces-subtitle,
+.attractions-subtitle {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--gray-600);
+}
+
+.provinces-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.province-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--gray-200);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.province-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+}
+
+.province-image-container {
+  position: relative;
+  width: 100%;
+  padding-top: 66.67%; /* 3:2 aspect ratio */
+  overflow: hidden;
+}
+
+.province-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.province-card:hover .province-image {
+  transform: scale(1.05);
+}
+
+.province-content {
+  padding: 1rem;
+}
+
+.province-name {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.province-count {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--gray-600);
+}
+
+/* Attractions Grid */
+.attractions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.attraction-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--gray-200);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.attraction-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  border-color: var(--primary-color);
+}
+
+.attraction-image-container {
+  position: relative;
+  width: 100%;
+  padding-top: 60%; /* 5:3 aspect ratio */
+  overflow: hidden;
+}
+
+.attraction-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.attraction-card:hover .attraction-image {
+  transform: scale(1.05);
+}
+
+.attraction-content {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.attraction-name {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  line-height: 1.3;
+}
+
+.attraction-description {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--gray-700);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.attraction-btn {
+  align-self: flex-start;
+  padding: 0.625rem 1.25rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.attraction-btn:hover {
+  background: var(--primary-dark);
+}
+
+.no-attractions {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--gray-600);
+}
+
+@media (max-width: 768px) {
+  .provinces-grid,
+  .attractions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Browse Page Styles */
+.browse-container {
+  min-height: 100vh;
+  background: var(--gray-50);
+}
+
+.browse-header {
+  background: white;
+  border-bottom: 1px solid var(--gray-200);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.browse-header .header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.browse-header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.back-navigation {
+  display: flex;
+  align-items: center;
+}
+
+.back-btn {
+  background: transparent;
+  border: none;
+  color: var(--primary-color);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.back-btn:hover {
+  background: var(--gray-100);
+}
+
+.browse-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
