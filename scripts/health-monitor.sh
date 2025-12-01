@@ -57,10 +57,21 @@ check_all_services() {
         fi
     done
     
-    # Check HTTP endpoints
+    # Check HTTP endpoints with proper status code validation
     for url in "${HEALTH_CHECK_URLS[@]}"; do
-        if ! curl -sf "$url" > /dev/null 2>&1; then
-            log_message "WARNING: Endpoint $url not responding"
+        local http_code=$(curl -s -o /dev/null -w "%{http_code}" "$url" 2>/dev/null)
+        if [ "$http_code" != "200" ]; then
+            log_message "WARNING: Endpoint $url returned HTTP $http_code (expected 200)"
+            return 1
+        fi
+    done
+    
+    # Additional check: verify main routes work (not just health endpoint)
+    local test_routes=("/" "/search")
+    for route in "${test_routes[@]}"; do
+        local http_code=$(curl -s -o /dev/null -w "%{http_code}" "https://ndlelasearchengine.co.za$route" 2>/dev/null)
+        if [ "$http_code" != "200" ]; then
+            log_message "WARNING: Route $route returned HTTP $http_code (expected 200)"
             return 1
         fi
     done
