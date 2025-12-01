@@ -1,6 +1,11 @@
 # Development Guidelines
 
-This folder contains comprehensive development guidelines for software projects. These guidelines are designed to be generic and applicable to both backend and frontend development across various technology stacks.
+This folder contains comprehensive development guidelines for the Ndlela Search Engine project. These guidelines must be followed in all development work.
+
+## Critical Guidelines
+
+⚠️ **MUST READ FIRST:**
+- [**Application Isolation**](./application-isolation.md) - **MANDATORY**: Application isolation requirements and rules
 
 ## Contents
 
