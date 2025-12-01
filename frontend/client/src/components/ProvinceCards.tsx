@@ -3,7 +3,6 @@
  * Displays South African provinces in a Booking.com-style card grid
  */
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Province } from '../data/provinces'
 
 interface ProvinceCardsProps {
@@ -12,8 +11,6 @@ interface ProvinceCardsProps {
 }
 
 export default function ProvinceCards({ provinces, onProvinceClick }: ProvinceCardsProps) {
-  const navigate = useNavigate()
-
   const handleClick = (province: Province) => {
     if (onProvinceClick) {
       onProvinceClick(province.id)

@@ -10,13 +10,9 @@ const { query } = require('../db');
 
 const rawSecret = process.env.JWT_SECRET || process.env.JWT_SECRET_KEY;
 if (!rawSecret) {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET is required in production environment');
-  } else {
-    console.warn('[auth] Missing JWT_SECRET; using insecure development fallback');
-  }
+  throw new Error('JWT_SECRET is required. Set JWT_SECRET or JWT_SECRET_KEY environment variable.');
 }
-const JWT_SECRET = rawSecret || 'insecure-dev-fallback';
+const JWT_SECRET = rawSecret;
 const TOKEN_EXPIRY = process.env.JWT_EXPIRATION || '7d';
 
 // Multer storage configuration for avatars
@@ -162,6 +158,9 @@ router.post('/avatar', verifyToken, (req, res) => {
   upload.single('avatar')(req, res, async function (err) {
     if (err) {
       return res.status(400).json({ success: false, message: err.message });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
     const userId = req.user.id;
     const fileRelPath = `/uploads/avatars/${userId}/${req.file.filename}`;
