@@ -9,6 +9,7 @@ import App from './App'
 import Search from './pages/Search'
 import Favourites from './pages/Favourites'
 import Profile from './pages/Profile'
+import Auth from './pages/Auth'
 import BusinessDetail from './pages/BusinessDetail'
 import Checkout from './pages/Checkout'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -32,6 +33,8 @@ const router = createBrowserRouter([
       { index: true, element: <Navigate to='/search' replace /> },
       { path: 'search', element: <Search /> },
       { path: 'favourites', element: <Favourites /> },
+      { path: 'login', element: <Auth /> },
+      { path: 'register', element: <Auth /> },
       {
         path: 'checkout',
         element: (

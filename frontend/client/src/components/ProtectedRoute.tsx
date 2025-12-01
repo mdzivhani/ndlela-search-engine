@@ -7,6 +7,13 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  // Temporarily disable auth guard to allow all access
+  const { user } = useAuth()
+  const location = useLocation()
+
+  if (!user) {
+    // Redirect to login while saving the location they were trying to access
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
   return <>{children}</>
 }
