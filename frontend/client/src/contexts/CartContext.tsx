@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
 export interface CartItem {
   serviceId: string;

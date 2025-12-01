@@ -28,7 +28,7 @@ export default function BusinessDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart, isInCart } = useCart();
-  const { searchParams, getTotalGuests } = useSearch();
+  const { getTotalGuests } = useSearch();
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   
   const business = id ? extendedMockBusinesses[id] : null;
@@ -118,106 +118,77 @@ export default function BusinessDetail() {
 
             {/* Services & Pricing */}
             <section style={{ marginBottom: '34px' }}>
-              <h2 style={{ marginBottom: '14px' }}>Services & Pricing</h2>
-              <div style={{ display: 'grid', gap: '10px', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
+              <h2 style={{ marginBottom: '20px', fontSize: '1.5rem' }}>Services & Pricing</h2>
+              <div className="services-modern-grid">
                 {business.services.map((service) => {
                   const quantity = quantities[service.id] || 1;
                   const inCart = isInCart(service.id);
                   
                   return (
-                    <Card 
+                    <div 
                       key={service.id}
-                      style={{
-                        backgroundColor: inCart ? 'rgba(0, 87, 183, 0.06)' : 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px'
-                      }}
-                      className="service-card-compact"
+                      className={`service-card-modern ${inCart ? 'in-cart' : ''}`}
                     >
-                      {/* Service Info */}
-                      <div style={{ flex: '1', minWidth: '0' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                          <h3 style={{ 
-                            margin: '0', 
-                            color: 'var(--primary-color)', 
-                            fontSize: '0.95rem', 
-                            lineHeight: '1.2',
-                            fontWeight: '600'
-                          }}>
-                            {service.name}
-                          </h3>
-                          <Badge>{service.category}</Badge>
+                      {/* Service Header */}
+                      <div className="service-card-header">
+                        <div className="service-title-section">
+                          <h3 className="service-title">{service.name}</h3>
+                          <div className="service-badges">
+                            <Badge>{service.category}</Badge>
+                            <span className="service-duration">
+                              <span className="duration-icon">⏱️</span>
+                              {service.duration}
+                            </span>
+                          </div>
                         </div>
-                        <p style={{ 
-                          margin: '0 0 4px 0', 
-                          color: 'var(--text-secondary)', 
-                          lineHeight: '1.4', 
-                          fontSize: '0.85rem',
-                          overflow: 'hidden',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical'
-                        }}>
-                          {service.description}
-                        </p>
-                        <Badge tone="primary" style={{ fontSize: '0.75rem' }}>⏱️ {service.duration}</Badge>
+                        <div className="service-price-section">
+                          <span className="price-label">Price</span>
+                          <span className="price-amount">R{service.price.toLocaleString()}</span>
+                        </div>
                       </div>
                       
-                      {/* Price */}
-                      <div style={{ 
-                        fontSize: '1.1rem', 
-                        fontWeight: 'bold',
-                        color: 'var(--primary-color)',
-                        textAlign: 'center',
-                        minWidth: '80px'
-                      }}>
-                        R{service.price.toLocaleString()}
-                      </div>
+                      {/* Service Description */}
+                      <p className="service-description">
+                        {service.description}
+                      </p>
                       
-                      {/* Quantity Controls */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Button variant="ghost" small
-                          onClick={() => setQuantities(prev => ({ ...prev, [service.id]: Math.max(1, quantity - 1) }))}
+                      {/* Service Actions */}
+                      <div className="service-actions">
+                        <div className="quantity-controls">
+                          <button 
+                            className="qty-btn"
+                            onClick={() => setQuantities(prev => ({ ...prev, [service.id]: Math.max(1, quantity - 1) }))}
+                          >
+                            −
+                          </button>
+                          <span className="qty-value">{quantity}</span>
+                          <button 
+                            className="qty-btn"
+                            onClick={() => setQuantities(prev => ({ ...prev, [service.id]: quantity + 1 }))}
+                          >
+                            +
+                          </button>
+                        </div>
+                        <Button
+                          onClick={() => {
+                            addToCart({
+                              serviceId: service.id,
+                              businessId: business.id,
+                              businessName: business.name,
+                              serviceName: service.name,
+                              price: service.price,
+                              duration: service.duration,
+                              category: service.category
+                            }, quantity);
+                          }}
+                          variant={inCart ? 'secondary' : 'primary'}
+                          small
+                          style={{ flex: 1 }}
                         >
-                          −
-                        </Button>
-                        <span style={{ 
-                          minWidth: '30px', 
-                          textAlign: 'center', 
-                          fontWeight: '600', 
-                          fontSize: '0.8rem',
-                          color: 'var(--text-primary)'
-                        }}>
-                          {quantity}
-                        </span>
-                        <Button variant="ghost" small
-                          onClick={() => setQuantities(prev => ({ ...prev, [service.id]: quantity + 1 }))}
-                        >
-                          +
+                          {inCart ? '✓ Added to Cart' : 'Add to Cart'}
                         </Button>
                       </div>
-                      
-                      {/* Add to Cart Button */}
-                      <Button
-                        onClick={() => {
-                          addToCart({
-                            serviceId: service.id,
-                            businessId: business.id,
-                            businessName: business.name,
-                            serviceName: service.name,
-                            price: service.price,
-                            duration: service.duration,
-                            category: service.category
-                          }, quantity);
-                        }}
-                        variant={inCart ? 'secondary' : 'primary'}
-                        small
-                        style={{ minWidth: '90px' }}
-                      >
-                        {inCart ? 'Added' : 'Add to Cart'}
-                      </Button>
-                    </Card>
+                    </div>
                   );
                 })}
               </div>
@@ -285,12 +256,13 @@ export default function BusinessDetail() {
                 <MapContainer 
                   center={[business.location.coordinates.lat, business.location.coordinates.lng]} 
                   zoom={13} 
-                  style={{ height: '300px', width: '100%' }}
+                  style={{ height: '300px', width: '100%', borderRadius: '8px' }}
                   scrollWheelZoom={scrollZoom}
                 >
                   <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                    maxZoom={20}
                   />
                   <Marker position={[business.location.coordinates.lat, business.location.coordinates.lng]}>
                     <Popup>

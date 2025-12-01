@@ -1,5 +1,4 @@
 import React from 'react'
-import { theme } from './theme'
 
 type BadgeProps = {
   children: React.ReactNode

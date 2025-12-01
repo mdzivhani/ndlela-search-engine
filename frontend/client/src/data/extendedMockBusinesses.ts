@@ -769,3 +769,11 @@ export const extendedMockBusinesses: { [key: string]: ExtendedBusiness } = {
     ]
   }
 };
+
+// Add attraction businesses to the main businesses object
+import { attractionBusinesses } from './attractionBusinesses'
+
+// Merge attraction businesses into the main object
+attractionBusinesses.forEach(business => {
+  extendedMockBusinesses[business.id] = business
+})

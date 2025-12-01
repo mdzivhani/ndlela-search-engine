@@ -131,13 +131,15 @@ export default function ActivityMap({
         center={defaultCenter}
         zoom={zoom}
         scrollWheelZoom={true}
-        style={{ height: '100%', width: '100%' }}
+        style={{ height: '100%', width: '100%', borderRadius: '8px' }}
         // @ts-ignore - MapContainer ref typing issue
         ref={mapRef}
       >
+        {/* Modern Google Maps-style tiles using CartoDB Positron (light theme) */}
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          maxZoom={20}
         />
 
         <MapUpdater center={center} zoom={zoom} />

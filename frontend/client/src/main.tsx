@@ -6,11 +6,11 @@ import { CartProvider } from './contexts/CartContext'
 import { SearchProvider } from './contexts/SearchContext'
 import { FavouritesProvider } from './contexts/FavouritesContext'
 import App from './App'
-import Login from './pages/Login'
-import Register from './pages/Register'
 import Search from './pages/Search'
+import Browse from './pages/Browse'
 import Favourites from './pages/Favourites'
 import Profile from './pages/Profile'
+import Auth from './pages/Auth'
 import BusinessDetail from './pages/BusinessDetail'
 import Checkout from './pages/Checkout'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -32,10 +32,11 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Navigate to='/search' replace /> },
-      { path: 'login', element: <Login /> },
-      { path: 'register', element: <Register /> },
       { path: 'search', element: <Search /> },
+      { path: 'browse', element: <Browse /> },
       { path: 'favourites', element: <Favourites /> },
+      { path: 'login', element: <Auth /> },
+      { path: 'register', element: <Auth /> },
       {
         path: 'checkout',
         element: (

@@ -8,7 +8,11 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { query } = require('../db');
 
-const JWT_SECRET = process.env.JWT_SECRET || process.env.JWT_SECRET_KEY || 'change-me-dev-secret';
+const rawSecret = process.env.JWT_SECRET || process.env.JWT_SECRET_KEY;
+if (!rawSecret) {
+  throw new Error('JWT_SECRET is required. Set JWT_SECRET or JWT_SECRET_KEY environment variable.');
+}
+const JWT_SECRET = rawSecret;
 const TOKEN_EXPIRY = process.env.JWT_EXPIRATION || '7d';
 
 // Multer storage configuration for avatars
@@ -150,19 +154,28 @@ router.get('/me', verifyToken, async (req, res) => {
 });
 
 // Upload avatar endpoint
-router.post('/avatar', verifyToken, (req, res, next) => {
-  upload.single('avatar')(req, res, function (err) {
+router.post('/avatar', verifyToken, (req, res) => {
+  upload.single('avatar')(req, res, async function (err) {
     if (err) {
       return res.status(400).json({ success: false, message: err.message });
     }
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+    const userId = req.user.id;
+    const fileRelPath = `/uploads/avatars/${userId}/${req.file.filename}`;
     try {
-      const userId = req.user.id;
-      const fileRelPath = `/uploads/avatars/${userId}/${req.file.filename}`;
-      query('UPDATE users SET profile_picture=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2', [fileRelPath, userId])
-        .catch((e) => console.warn('Failed to update profile picture', e));
+      await query('UPDATE users SET profile_picture=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2', [fileRelPath, userId]);
       return res.json({ success: true, url: fileRelPath });
     } catch (e) {
-      console.error('Avatar upload error:', e);
+      // Attempt cleanup of uploaded file if DB update fails
+      try {
+        const absPath = path.join(__dirname, '..', fileRelPath);
+        if (fs.existsSync(absPath)) fs.unlinkSync(absPath);
+      } catch (cleanupErr) {
+        console.warn('Failed avatar file cleanup after DB error', cleanupErr);
+      }
+      console.error('Avatar upload DB update error:', e);
       return res.status(500).json({ success: false, message: 'Avatar upload failed' });
     }
   });

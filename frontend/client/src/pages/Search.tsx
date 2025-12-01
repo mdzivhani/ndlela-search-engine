@@ -136,7 +136,7 @@ export default function Search() {
         {error && <div className="error-message">{error}</div>}
 
         {/* Show recommendations when no search results or empty results */}
-        {(!results || (results && results.results.length === 0)) && !error && !isLoading && (
+        {(!results || results.results.length === 0) && !error && !isLoading && (
           <RecommendationsSections
             forYou={[]}
             topPicks={[]}
@@ -171,41 +171,49 @@ export default function Search() {
                     <p>No results found. Try adjusting your filters or search area.</p>
                   </div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
+                  <div className="results-list-modern">
                     {results.results.map((result) => (
-                      <Card
+                      <div
                         key={result.id}
-                        padding={12}
-                        style={{ display: 'flex', flexDirection: 'column', gap: 8, cursor: 'pointer' }}
+                        className={`result-item-modern ${highlightedId === result.id ? 'highlighted' : ''}`}
                         onClick={() => navigate(`/business/${result.id}`)}
                         onMouseEnter={() => handleActivityCardHover(result.id)}
                         onMouseLeave={() => handleActivityCardHover(null)}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                          <h3 style={{ margin: 0 }}>{result.name}</h3>
-                          <span style={{ color: 'var(--primary-color)', fontWeight: 700 }}>★ {result.rating.toFixed(1)}</span>
-                        </div>
-                        <p style={{ margin: 0, color: 'var(--text-secondary)', lineHeight: 1.4, fontSize: '0.9rem', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                          {result.description}
-                        </p>
-                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
-                          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                            <Badge>{result.category}</Badge>
-                            {result.region && <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>📍 {result.region}</span>}
+                        <div className="result-header-modern">
+                          <div className="result-title-section">
+                            <h3 className="result-title">{result.name}</h3>
+                            <div className="result-meta">
+                              <span className="result-rating">
+                                <span className="star-icon">★</span>
+                                {result.rating.toFixed(1)}
+                              </span>
+                              <span className="result-separator">•</span>
+                              <Badge>{result.category}</Badge>
+                              {result.city && (
+                                <>
+                                  <span className="result-separator">•</span>
+                                  <span className="result-location">📍 {result.city}</span>
+                                </>
+                              )}
+                            </div>
                           </div>
                           {result.priceFrom && (
-                            <span style={{ color: 'var(--primary-color)', fontWeight: 700 }}>From R{result.priceFrom}</span>
+                            <div className="result-price-modern">
+                              <span className="price-label">From</span>
+                              <span className="price-value">R{result.priceFrom.toLocaleString()}</span>
+                            </div>
                           )}
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                          <Button variant='primary' small onClick={() => navigate(`/business/${result.id}`)}>View</Button>
+                        <p className="result-description">{result.description}</p>
+                        <div className="result-footer-modern">
+                          <Button variant='primary' small onClick={(e) => {
+                            e.stopPropagation()
+                            navigate(`/business/${result.id}`)
+                          }}>View Details</Button>
                         </div>
-                      </Card>
+                      </div>
                     ))}
-                    <style>{`
-                      @media (max-width: 1024px) { .search-container .results-list-container > div { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
-                      @media (max-width: 640px) { .search-container .results-list-container > div { grid-template-columns: 1fr !important; } }
-                    `}</style>
                   </div>
                 )}
               </div>
