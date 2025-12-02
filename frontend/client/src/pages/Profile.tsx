@@ -10,13 +10,37 @@ import ProfileAvatar from '../components/ProfileAvatar'
 
 const API_BASE_URL = '/api'
 
+interface PasswordChangeData {
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
+}
+
 export default function Profile() {
-  const { user, logout } = useAuth()
+  const { user, logout, updateUser } = useAuth()
   const navigate = useNavigate()
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  // Password change state
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [passwordData, setPasswordData] = useState<PasswordChangeData>({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  })
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState('')
+
+  // Split name into firstName and lastName for UI
+  const nameParts = user?.name?.split(' ') || []
+  const initialFirstName = nameParts[0] || ''
+  const initialLastName = nameParts.slice(1).join(' ') || ''
+
+  const [firstName, setFirstName] = useState(initialFirstName)
+  const [lastName, setLastName] = useState(initialLastName)
 
   const [formData, setFormData] = useState<UpdateProfileRequest>({
     name: user?.name || '',
@@ -28,9 +52,28 @@ export default function Profile() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    
+    // Handle first name and last name separately, combine into name field
+    if (name === 'firstName') {
+      setFirstName(value)
+      const fullName = `${value} ${lastName}`.trim()
+      setFormData((prev) => ({ ...prev, name: fullName }))
+    } else if (name === 'lastName') {
+      setLastName(value)
+      const fullName = `${firstName} ${value}`.trim()
+      setFormData((prev) => ({ ...prev, name: fullName }))
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }))
+    }
     setError('')
     setSuccess('')
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setPasswordData((prev) => ({ ...prev, [name]: value }))
+    setPasswordError('')
+    setPasswordSuccess('')
   }
 
   const handleSubmit = useCallback(
@@ -73,6 +116,12 @@ export default function Profile() {
   )
 
   const handleCancel = () => {
+    const nameParts = user?.name?.split(' ') || []
+    const resetFirstName = nameParts[0] || ''
+    const resetLastName = nameParts.slice(1).join(' ') || ''
+    
+    setFirstName(resetFirstName)
+    setLastName(resetLastName)
     setFormData({
       name: user?.name || '',
       phone: user?.phone || '',
@@ -83,6 +132,66 @@ export default function Profile() {
     setIsEditing(false)
     setError('')
     setSuccess('')
+  }
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPasswordError('')
+    setPasswordSuccess('')
+
+    // Client-side validation
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      setPasswordError('All password fields are required')
+      return
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setPasswordError('New password must be at least 6 characters long')
+      return
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('New passwords do not match')
+      return
+    }
+
+    if (passwordData.currentPassword === passwordData.newPassword) {
+      setPasswordError('New password must be different from current password')
+      return
+    }
+
+    setIsSaving(true)
+
+    try {
+      const baseHeaders: Record<string, string> = { 'Content-Type': 'application/json' }
+      const authHeader = getAuthHeader() as Record<string, string>
+      if (authHeader && authHeader.Authorization) {
+        baseHeaders.Authorization = authHeader.Authorization
+      }
+
+      const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+        method: 'PUT',
+        headers: baseHeaders,
+        body: JSON.stringify(passwordData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to change password')
+      }
+
+      setPasswordSuccess('Password changed successfully!')
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      })
+      setIsChangingPassword(false)
+    } catch (err) {
+      setPasswordError(err instanceof Error ? err.message : 'Failed to change password')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   if (!user) {
@@ -159,20 +268,37 @@ export default function Profile() {
             <div className="profile-section">
               <h3>Personal Information</h3>
 
-              <div className="form-group">
-                <label htmlFor="name">
-                  Full Name <span className="required">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  disabled={!isEditing}
-                  required
-                  className="form-input"
-                />
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="firstName">
+                    First Name <span className="required">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    value={firstName}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    required
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="lastName">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    id="lastName"
+                    name="lastName"
+                    value={lastName}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="form-input"
+                  />
+                </div>
               </div>
 
               <div className="form-group">
@@ -275,6 +401,109 @@ export default function Profile() {
               </div>
             )}
           </form>
+
+          {/* Password Change Section */}
+          <div className="profile-section">
+            <div className="profile-section-header">
+              <h3>Security</h3>
+              {!isChangingPassword && (
+                <button
+                  onClick={() => setIsChangingPassword(true)}
+                  className="btn-edit"
+                  type="button"
+                >
+                  Change Password
+                </button>
+              )}
+            </div>
+
+            {isChangingPassword && (
+              <form onSubmit={handlePasswordSubmit} className="password-change-form">
+                {passwordError && <div className="message-error">{passwordError}</div>}
+                {passwordSuccess && <div className="message-success">{passwordSuccess}</div>}
+
+                <div className="form-group">
+                  <label htmlFor="currentPassword">
+                    Current Password <span className="required">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    id="currentPassword"
+                    name="currentPassword"
+                    value={passwordData.currentPassword}
+                    onChange={handlePasswordChange}
+                    required
+                    className="form-input"
+                    autoComplete="current-password"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="newPassword">
+                    New Password <span className="required">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    id="newPassword"
+                    name="newPassword"
+                    value={passwordData.newPassword}
+                    onChange={handlePasswordChange}
+                    required
+                    minLength={6}
+                    className="form-input"
+                    autoComplete="new-password"
+                  />
+                  <small className="form-help-text">Must be at least 6 characters long</small>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="confirmPassword">
+                    Confirm New Password <span className="required">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    value={passwordData.confirmPassword}
+                    onChange={handlePasswordChange}
+                    required
+                    minLength={6}
+                    className="form-input"
+                    autoComplete="new-password"
+                  />
+                </div>
+
+                <div className="profile-actions">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsChangingPassword(false)
+                      setPasswordData({
+                        currentPassword: '',
+                        newPassword: '',
+                        confirmPassword: ''
+                      })
+                      setPasswordError('')
+                      setPasswordSuccess('')
+                    }}
+                    disabled={isSaving}
+                    className="btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={isSaving} className="btn-primary">
+                    {isSaving ? 'Changing...' : 'Change Password'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {!isChangingPassword && (
+              <p className="form-help-text">
+                Click "Change Password" to update your account password.
+              </p>
+            )}
+          </div>
 
           <div className="profile-info">
             <p className="form-help-text">
