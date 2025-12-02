@@ -157,15 +157,24 @@ router.get('/me', verifyToken, async (req, res) => {
 router.post('/avatar', verifyToken, (req, res) => {
   upload.single('avatar')(req, res, async function (err) {
     if (err) {
+      console.error('Multer error:', err);
       return res.status(400).json({ success: false, message: err.message });
     }
+    
+    // Check if file was uploaded
     if (!req.file) {
+      console.error('No file uploaded');
       return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
-    const userId = req.user.id;
-    const fileRelPath = `/uploads/avatars/${userId}/${req.file.filename}`;
+    
     try {
+      const userId = req.user.id;
+      const fileRelPath = `/uploads/avatars/${userId}/${req.file.filename}`;
+      console.log('Avatar uploaded successfully:', fileRelPath);
+      
       await query('UPDATE users SET profile_picture=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2', [fileRelPath, userId]);
+      console.log('Database updated with new avatar');
+      
       return res.json({ success: true, url: fileRelPath });
     } catch (e) {
       // Attempt cleanup of uploaded file if DB update fails
