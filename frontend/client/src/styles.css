@@ -2217,6 +2217,61 @@ body {
   margin-left: 0.25rem;
 }
 
+/* Business Detail Page - Refined Spacing */
+.business-detail {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.business-detail h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.business-detail h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0 0 10px 0;
+  color: var(--gray-900);
+}
+
+.business-detail h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.business-detail section {
+  margin-bottom: 28px;
+}
+
+.business-detail section:last-of-type {
+  margin-bottom: 0;
+}
+
+.business-detail p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+  color: var(--gray-700);
+}
+
+/* Text secondary color support */
+.text-secondary {
+  color: var(--gray-600) !important;
+}
+
+.text-muted {
+  color: var(--gray-500) !important;
+}
+
+.background-secondary {
+  background-color: var(--gray-50);
+}
+
 @media (max-width: 640px) {
   .nav-tab {
     flex-direction: column;

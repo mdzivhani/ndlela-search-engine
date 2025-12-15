@@ -135,11 +135,11 @@ export default function ActivityMap({
         // @ts-ignore - MapContainer ref typing issue
         ref={mapRef}
       >
-        {/* Modern Google Maps-style tiles using CartoDB Positron (light theme) */}
+        {/* OpenStreetMap tiles - completely free */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          maxZoom={20}
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          maxZoom={19}
         />
 
         <MapUpdater center={center} zoom={zoom} />
@@ -179,6 +179,9 @@ export default function ActivityMap({
                 <p className="popup-category">{activity.category}</p>
                 {activity.rating && (
                   <p className="popup-rating">★ {activity.rating.toFixed(1)}</p>
+                )}
+                {activity.city && (
+                  <p className="popup-location">📍 {activity.city}</p>
                 )}
                 {activity.priceFrom && (
                   <p className="popup-price">

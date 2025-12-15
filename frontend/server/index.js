@@ -25,7 +25,9 @@ app.use(morgan('combined', {
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api/auth', authRouter);
+// Support both /api/search (intended) and /search (if upstream strips prefix)
 app.use('/api/search', searchRouter);
+app.use('/search', searchRouter);
 app.use('/api/operator', operatorRouter);
 
 app.get('/', (req, res) => res.json({ service: 'ndlela-search-engine', status: 'ok' }));
