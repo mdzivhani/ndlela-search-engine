@@ -190,10 +190,12 @@ export default function Search() {
                               </span>
                               <span className="result-separator">•</span>
                               <Badge>{result.category}</Badge>
-                              {result.city && (
+                              {(result.city || result.province) && (
                                 <>
                                   <span className="result-separator">•</span>
-                                  <span className="result-location">📍 {result.city}</span>
+                                  <span className="result-location">
+                                    📍 {[result.city, result.province].filter(Boolean).join(', ')}
+                                  </span>
                                 </>
                               )}
                             </div>

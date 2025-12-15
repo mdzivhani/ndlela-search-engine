@@ -59,11 +59,11 @@ export default function BusinessDetail() {
   const [scrollZoom, setScrollZoom] = useState(false);
   return (
     <div className="business-detail">
-      {/* Header Section */}
-      <div className="detail-header" style={{ 
+      {/* Header Section - Compact */}
+      <div className="detail-header-compact" style={{ 
         background: 'linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%)',
         color: 'white',
-        padding: '26px 20px'
+        padding: '14px 20px'
       }}>
         <div className="container">
           <button 
@@ -72,54 +72,47 @@ export default function BusinessDetail() {
               background: 'rgba(255,255,255,0.2)',
               border: 'none',
               color: 'white',
-              padding: '6px 14px',
+              padding: '4px 10px',
               borderRadius: '4px',
               cursor: 'pointer',
-              marginBottom: '12px'
+              fontSize: '0.8rem',
+              marginBottom: '8px'
             }}
           >
             ← Back
           </button>
-          <h1 style={{ margin: '6px 0 4px 0', fontSize: '2.1rem', lineHeight: '1.15' }}>{business.name}</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: '1.2rem' }}>
-              ⭐ {business.rating} ({business.reviewCount} reviews)
-            </span>
+          <h1 style={{ margin: '4px 0 6px 0', fontSize: '1.75rem', lineHeight: '1.2', fontWeight: '700' }}>{business.name}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', fontSize: '0.9rem' }}>
+            <span>⭐ {business.rating.toFixed(1)} ({business.reviewCount})</span>
             <span style={{ 
-              background: 'rgba(255,255,255,0.3)',
-              padding: '4px 12px',
-              borderRadius: '20px'
+              background: 'rgba(255,255,255,0.25)',
+              padding: '2px 8px',
+              borderRadius: '16px',
+              fontSize: '0.8rem'
             }}>
               {business.type}
             </span>
-            <span style={{ 
-              fontSize: '0.85rem',
-              opacity: 0.9,
-              display: 'flex',
-              alignItems: 'center'
-            }}>
-              📍 {business.location.city}, {business.location.province}
-            </span>
+            <span style={{ opacity: 0.85 }}>📍 {business.location.city}</span>
           </div>
         </div>
       </div>
 
-      <div className="container" style={{ padding: '30px 20px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '28px', marginBottom: '32px' }}>
+      <div className="container" style={{ padding: '24px 20px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
           {/* Main Content */}
           <div>
             {/* Description */}
-            <section style={{ marginBottom: '30px' }}>
-              <h2 style={{ marginBottom: '12px' }}>About</h2>
-              <p style={{ lineHeight: '1.8', color: 'var(--text-secondary)' }}>
+            <section style={{ marginBottom: '28px' }}>
+              <h2 style={{ marginBottom: '10px', fontSize: '1.1rem', fontWeight: '600' }}>About</h2>
+              <p style={{ lineHeight: '1.6', color: 'var(--text-secondary)', margin: '0', fontSize: '0.95rem' }}>
                 {business.description}
               </p>
             </section>
 
             {/* Services & Pricing */}
-            <section style={{ marginBottom: '34px' }}>
-              <h2 style={{ marginBottom: '20px', fontSize: '1.5rem' }}>Services & Pricing</h2>
-              <div className="services-modern-grid">
+            <section style={{ marginBottom: '28px' }}>
+              <h2 style={{ marginBottom: '16px', fontSize: '1.1rem', fontWeight: '600' }}>Services & Pricing</h2>
+              <div className="services-modern-grid-compact">
                 {business.services.map((service) => {
                   const quantity = quantities[service.id] || 1;
                   const inCart = isInCart(service.id);
@@ -127,43 +120,39 @@ export default function BusinessDetail() {
                   return (
                     <div 
                       key={service.id}
-                      className={`service-card-modern ${inCart ? 'in-cart' : ''}`}
+                      className={`service-card-compact ${inCart ? 'in-cart' : ''}`}
                     >
                       {/* Service Header */}
-                      <div className="service-card-header">
-                        <div className="service-title-section">
-                          <h3 className="service-title">{service.name}</h3>
-                          <div className="service-badges">
+                      <div className="service-card-header-compact">
+                        <div className="service-title-section-compact">
+                          <h3 className="service-title-compact">{service.name}</h3>
+                          <div className="service-badges-compact">
                             <Badge>{service.category}</Badge>
-                            <span className="service-duration">
-                              <span className="duration-icon">⏱️</span>
-                              {service.duration}
-                            </span>
+                            <span className="service-duration-compact">⏱️ {service.duration}</span>
                           </div>
                         </div>
-                        <div className="service-price-section">
-                          <span className="price-label">Price</span>
-                          <span className="price-amount">R{service.price.toLocaleString()}</span>
+                        <div className="service-price-section-compact">
+                          <span className="price-amount-compact">R{service.price.toLocaleString()}</span>
                         </div>
                       </div>
                       
                       {/* Service Description */}
-                      <p className="service-description">
+                      <p className="service-description-compact">
                         {service.description}
                       </p>
                       
                       {/* Service Actions */}
-                      <div className="service-actions">
-                        <div className="quantity-controls">
+                      <div className="service-actions-compact">
+                        <div className="quantity-controls-compact">
                           <button 
-                            className="qty-btn"
+                            className="qty-btn-compact"
                             onClick={() => setQuantities(prev => ({ ...prev, [service.id]: Math.max(1, quantity - 1) }))}
                           >
                             −
                           </button>
-                          <span className="qty-value">{quantity}</span>
+                          <span className="qty-value-compact">{quantity}</span>
                           <button 
-                            className="qty-btn"
+                            className="qty-btn-compact"
                             onClick={() => setQuantities(prev => ({ ...prev, [service.id]: quantity + 1 }))}
                           >
                             +
@@ -185,7 +174,7 @@ export default function BusinessDetail() {
                           small
                           style={{ flex: 1 }}
                         >
-                          {inCart ? '✓ Added to Cart' : 'Add to Cart'}
+                          {inCart ? '✓ Added' : 'Add to Cart'}
                         </Button>
                       </div>
                     </div>
@@ -195,26 +184,27 @@ export default function BusinessDetail() {
             </section>
 
             {/* Amenities */}
-            <section style={{ marginBottom: '34px' }}>
-              <h2 style={{ marginBottom: '12px' }}>Amenities & Features</h2>
+            <section style={{ marginBottom: '28px' }}>
+              <h2 style={{ marginBottom: '12px', fontSize: '1.1rem', fontWeight: '600' }}>Amenities & Features</h2>
               <div style={{ 
                 display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                gap: '10px'
+                gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                gap: '8px'
               }}>
                 {business.amenities.map((amenity, index) => (
                   <div 
                     key={index}
                     style={{
-                      padding: '12px 15px',
+                      padding: '8px 12px',
                       background: 'var(--background-secondary)',
                       borderRadius: '6px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px'
+                      gap: '6px',
+                      fontSize: '0.9rem'
                     }}
                   >
-                    <span style={{ color: 'var(--primary-color)' }}>✓</span>
+                    <span style={{ color: 'var(--primary-color)', fontSize: '0.85rem' }}>✓</span>
                     <span>{amenity}</span>
                   </div>
                 ))}
@@ -223,20 +213,21 @@ export default function BusinessDetail() {
 
             {/* Operating Hours */}
             <section>
-              <h2 style={{ marginBottom: '12px' }}>Operating Hours</h2>
+              <h2 style={{ marginBottom: '12px', fontSize: '1.1rem', fontWeight: '600' }}>Operating Hours</h2>
               <div style={{ 
                 border: '1px solid var(--border-color)',
-                borderRadius: '8px',
-                padding: '16px'
+                borderRadius: '6px',
+                overflow: 'hidden'
               }}>
-                {Object.entries(business.hours).map(([day, hours]) => (
+                {Object.entries(business.hours).map(([day, hours], idx) => (
                   <div 
                     key={day}
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
-                      padding: '8px 0',
-                      borderBottom: '1px solid var(--border-color)'
+                      padding: '8px 12px',
+                      fontSize: '0.9rem',
+                      borderBottom: idx < Object.entries(business.hours).length - 1 ? '1px solid var(--border-color)' : 'none'
                     }}
                   >
                     <span style={{ fontWeight: '500' }}>{day}</span>
@@ -250,19 +241,19 @@ export default function BusinessDetail() {
           {/* Sidebar */}
           <div>
             {/* Map */}
-            <section style={{ marginBottom: '26px' }}>
-              <h2 style={{ marginBottom: '12px' }}>Location</h2>
+            <section style={{ marginBottom: '20px' }}>
+              <h2 style={{ marginBottom: '10px', fontSize: '1.1rem', fontWeight: '600' }}>Location</h2>
               <Card style={{ overflow: 'hidden', padding: 0 }}>
                 <MapContainer 
                   center={[business.location.coordinates.lat, business.location.coordinates.lng]} 
                   zoom={13} 
-                  style={{ height: '300px', width: '100%', borderRadius: '8px' }}
+                  style={{ height: '220px', width: '100%' }}
                   scrollWheelZoom={scrollZoom}
                 >
                   <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                    maxZoom={20}
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    maxZoom={19}
                   />
                   <Marker position={[business.location.coordinates.lat, business.location.coordinates.lng]}>
                     <Popup>
@@ -272,56 +263,45 @@ export default function BusinessDetail() {
                   </Marker>
                 </MapContainer>
                 {!scrollZoom && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '8px 10px' }}>
-                    <Button variant="ghost" small onClick={() => setScrollZoom(true)}>Enable scroll zoom</Button>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '6px 8px', fontSize: '0.85rem' }}>
+                    <Button variant="ghost" small onClick={() => setScrollZoom(true)}>Scroll zoom</Button>
                   </div>
                 )}
               </Card>
-              <div style={{ padding: '12px', background: 'var(--background-secondary)', borderRadius: '8px' }}>
-                <p style={{ margin: '5px 0' }}><strong>{business.location.address}</strong></p>
-                <p style={{ margin: '5px 0', color: 'var(--text-secondary)' }}>
-                  {business.location.city}, {business.location.province}
-                </p>
-                <p style={{ margin: '5px 0', color: 'var(--text-secondary)' }}>
-                  {business.location.postalCode}
+              <div style={{ padding: '10px 12px', background: 'var(--background-secondary)', borderRadius: '6px', marginTop: '8px', fontSize: '0.9rem' }}>
+                <p style={{ margin: '4px 0', fontWeight: '600' }}>{business.location.address}</p>
+                <p style={{ margin: '3px 0', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                  {business.location.city}, {business.location.province} {business.location.postalCode}
                 </p>
               </div>
             </section>
 
             {/* Contact Info */}
-            <section style={{ marginBottom: '26px' }}>
-              <h2 style={{ marginBottom: '12px' }}>Contact</h2>
+            <section style={{ marginBottom: '20px' }}>
+              <h2 style={{ marginBottom: '10px', fontSize: '1.1rem', fontWeight: '600' }}>Contact</h2>
               <div style={{ 
                 border: '1px solid var(--border-color)',
-                borderRadius: '8px',
-                padding: '16px'
+                borderRadius: '6px',
+                padding: '12px',
+                fontSize: '0.9rem'
               }}>
-                <div style={{ marginBottom: '15px' }}>
-                  <span style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '5px' }}>
-                    Phone
-                  </span>
-                  <a href={`tel:${business.contact.phone}`} style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>
+                <div style={{ marginBottom: '10px' }}>
+                  <a href={`tel:${business.contact.phone}`} style={{ color: 'var(--primary-color)', textDecoration: 'none', fontWeight: '500' }}>
                     📞 {business.contact.phone}
                   </a>
                 </div>
-                <div style={{ marginBottom: '15px' }}>
-                  <span style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '5px' }}>
-                    Email
-                  </span>
-                  <a href={`mailto:${business.contact.email}`} style={{ color: 'var(--primary-color)', textDecoration: 'none' }}>
+                <div style={{ marginBottom: '10px' }}>
+                  <a href={`mailto:${business.contact.email}`} style={{ color: 'var(--primary-color)', textDecoration: 'none', fontWeight: '500', fontSize: '0.85rem', wordBreak: 'break-all' }}>
                     ✉️ {business.contact.email}
                   </a>
                 </div>
                 {business.contact.website && (
                   <div>
-                    <span style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '5px' }}>
-                      Website
-                    </span>
                     <a 
                       href={business.contact.website} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      style={{ color: 'var(--primary-color)', textDecoration: 'none' }}
+                      style={{ color: 'var(--primary-color)', textDecoration: 'none', fontWeight: '500' }}
                     >
                       🌐 Visit Website
                     </a>
@@ -331,17 +311,15 @@ export default function BusinessDetail() {
             </section>
 
             {/* CTA */}
-            <button 
-              className="btn-primary"
+            <Button 
               style={{
                 width: '100%',
-                padding: '12px',
-                fontSize: '1rem'
+                padding: '10px'
               }}
               onClick={() => alert('Booking functionality coming soon!')}
             >
               Book Now
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -349,31 +327,169 @@ export default function BusinessDetail() {
       <Cart />
 
       <style>{`
-        .service-card:hover {
-          box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-          transform: translateY(-3px);
+        .detail-header-compact {
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
         }
-        .business-detail h2 { font-size: 1.25rem; line-height: 1.3; }
-        .business-detail h3 { font-size: 1.05rem; }
-        @media (max-width: 900px) {
-          .detail-header { padding: 22px 16px !important; }
-          .business-detail h1 { font-size: 1.8rem !important; }
-          .business-detail .container { padding: 24px 16px !important; }
-        }
-        @media (max-width: 768px) {
-          .business-detail .container > div { grid-template-columns: 1fr !important; }
-          .service-card { padding: 14px !important; }
+        
+        .business-detail h2 { font-size: 1.1rem; line-height: 1.3; font-weight: 600; }
+        .business-detail section { margin-bottom: 28px; }
+        .business-detail section:last-of-type { margin-bottom: 0; }
+        
+        /* Compact Services Grid */
+        .services-modern-grid-compact {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+          gap: 12px;
         }
 
-        /* Responsive services grid: 3 cols desktop, 2 tablet, 1 mobile */
+        .service-card-compact {
+          background: white;
+          border: 1px solid var(--gray-200);
+          border-radius: 6px;
+          padding: 12px;
+          transition: all 0.2s ease;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .service-card-compact:hover {
+          border-color: var(--primary-color);
+          box-shadow: 0 2px 8px rgba(0, 87, 183, 0.08);
+          transform: translateY(-1px);
+        }
+
+        .service-card-compact.in-cart {
+          background: rgba(0, 87, 183, 0.02);
+          border-color: var(--primary-color);
+        }
+
+        .service-card-header-compact {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 8px;
+        }
+
+        .service-title-section-compact {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .service-title-compact {
+          margin: 0 0 4px 0;
+          font-size: 1rem;
+          font-weight: 600;
+          color: var(--gray-900);
+          line-height: 1.2;
+        }
+
+        .service-badges-compact {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          flex-wrap: wrap;
+        }
+
+        .service-duration-compact {
+          display: inline-flex;
+          align-items: center;
+          gap: 2px;
+          font-size: 0.75rem;
+          color: var(--gray-600);
+          background: var(--gray-100);
+          padding: 2px 6px;
+          border-radius: 3px;
+        }
+
+        .service-price-section-compact {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          flex-shrink: 0;
+        }
+
+        .price-amount-compact {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: var(--primary-color);
+          line-height: 1;
+        }
+
+        .service-description-compact {
+          margin: 0;
+          color: var(--gray-700);
+          line-height: 1.5;
+          font-size: 0.875rem;
+        }
+
+        .service-actions-compact {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding-top: 6px;
+          border-top: 1px solid var(--gray-200);
+        }
+
+        .quantity-controls-compact {
+          display: flex;
+          align-items: center;
+          gap: 3px;
+          background: var(--gray-50);
+          border: 1px solid var(--gray-300);
+          border-radius: 4px;
+          padding: 2px 4px;
+        }
+
+        .qty-btn-compact {
+          background: white;
+          border: 1px solid var(--gray-300);
+          border-radius: 3px;
+          width: 24px;
+          height: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: var(--gray-700);
+          transition: all 0.15s ease;
+          padding: 0;
+        }
+
+        .qty-btn-compact:hover {
+          background: var(--primary-color);
+          color: white;
+          border-color: var(--primary-color);
+        }
+
+        .qty-value-compact {
+          min-width: 24px;
+          text-align: center;
+          font-weight: 600;
+          font-size: 0.85rem;
+          color: var(--gray-900);
+        }
+
         @media (max-width: 1200px) {
-          .service-card-compact { font-size: 0.95em; }
+          .services-modern-grid-compact {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+          }
         }
-        @media (max-width: 1024px) {
-          .business-detail section:nth-of-type(2) > div { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+
+        @media (max-width: 900px) {
+          .detail-header-compact { padding: 12px 16px !important; }
+          .business-detail h1 { font-size: 1.5rem !important; }
+          .business-detail .container { padding: 20px 16px !important; }
+          .business-detail > div:first-of-type > div { grid-template-columns: 1fr !important; }
         }
-        @media (max-width: 640px) {
-          .business-detail section:nth-of-type(2) > div { grid-template-columns: 1fr !important; }
+
+        @media (max-width: 768px) {
+          .services-modern-grid-compact { grid-template-columns: 1fr; }
+          .service-card-compact { padding: 10px; }
+          .service-card-header-compact { flex-direction: column; }
+          .service-price-section-compact { align-items: flex-start; width: 100%; }
         }
       `}</style>
     </div>
