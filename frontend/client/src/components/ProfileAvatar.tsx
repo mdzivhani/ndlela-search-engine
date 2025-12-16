@@ -48,7 +48,7 @@ export default function ProfileAvatar({ size = 'large', showActions = false }: P
     setError('')
     try {
       const result = await uploadAvatar(file)
-      updateUser({ profilePicture: result.url })
+      updateUser({ profilePicture: `${result.url}?v=${Date.now()}` })
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl)
         setPreviewUrl(null)
@@ -80,10 +80,23 @@ export default function ProfileAvatar({ size = 'large', showActions = false }: P
 
   const renderContent = () => {
     if (user?.profilePicture) {
-      return <img src={user.profilePicture} alt={user.name + ' avatar'} className="avatar-image" loading="lazy" />
+      return (
+        <img
+          src={user.profilePicture}
+          alt={(user?.name || 'User') + ' avatar'}
+          className="avatar-image"
+          loading="lazy"
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).style.display = 'none'
+          }}
+        />
+      )
     }
-    const initial = user?.name?.charAt(0).toUpperCase() || '?' 
-    return <span className="avatar-initial" aria-label="avatar-initial">{initial}</span>
+    if (user && user.name) {
+      const initial = user.name.charAt(0).toUpperCase()
+      return <span className="avatar-initial" aria-label="avatar-initial">{initial}</span>
+    }
+    return <span className="avatar-icon" aria-label="avatar-default" role="img">👤</span>
   }
 
   return (
@@ -94,7 +107,7 @@ export default function ProfileAvatar({ size = 'large', showActions = false }: P
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/png,image/jpeg"
+            accept="image/png,image/jpeg,image/webp"
             style={{ display: 'none' }}
             onChange={handleFileChange}
             data-testid="avatar-file-input"

@@ -40,9 +40,10 @@ export async function apiFetch<T = unknown>(
 ): Promise<T> {
   const { skipAuth, ...fetchOptions } = options
   
-  // Build headers
+  // Build headers (handle FormData uploads by not setting Content-Type)
+  const isFormDataBody = fetchOptions.body instanceof FormData
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+    ...(isFormDataBody ? {} : { 'Content-Type': 'application/json' }),
     ...fetchOptions.headers,
   }
 
@@ -131,6 +132,14 @@ export const apiClient = {
       ...options,
       method: 'POST',
       body: data ? JSON.stringify(data) : undefined,
+    }),
+
+  // Helper for multipart/form-data uploads
+  postForm: <T = unknown>(endpoint: string, form: FormData, options?: FetchOptions) =>
+    apiFetch<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      body: form,
     }),
 
   put: <T = unknown>(endpoint: string, data?: unknown, options?: FetchOptions) =>

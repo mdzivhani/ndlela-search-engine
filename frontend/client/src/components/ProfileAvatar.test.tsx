@@ -16,13 +16,13 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => {
 }
 
 describe('ProfileAvatar', () => {
-  it('renders initial when no profile picture', () => {
+  it('renders default icon when logged out', () => {
     render(
       <Wrapper>
         <ProfileAvatar />
       </Wrapper>
     )
-    expect(screen.getByLabelText('avatar-initial')).toBeInTheDocument()
+    expect(screen.getByLabelText('avatar-default')).toBeInTheDocument()
   })
 
   it.skip('shows preview then confirms upload for valid image', async () => {
@@ -50,7 +50,7 @@ describe('ProfileAvatar', () => {
   it('shows error for unsupported file type on confirm', async () => {
     // Override mock to throw for unsupported type
     (userService.uploadAvatar as any).mockImplementationOnce(async (file: File) => {
-      throw new Error('Unsupported file type. Use JPG or PNG.')
+      throw new Error('Unsupported file type. Use JPG, PNG, or WEBP.')
     })
     render(
       <Wrapper>

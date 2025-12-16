@@ -41,10 +41,10 @@ const avatarStorage = multer.diskStorage({
 
 const upload = multer({
   storage: avatarStorage,
-  limits: { fileSize: 1_000_000 }, // 1MB
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
-    if (!['image/png', 'image/jpeg'].includes(file.mimetype)) {
-      return cb(new Error('Unsupported file type. Use JPG or PNG.'));
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.mimetype)) {
+      return cb(new Error('Unsupported file type. Use JPG, PNG, or WEBP.'));
     }
     cb(null, true);
   }
