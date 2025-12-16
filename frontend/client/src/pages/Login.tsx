@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import { ApiClientError } from '../utils/apiClient'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -24,7 +25,20 @@ export default function Login() {
       const from = (location.state as any)?.from?.pathname || '/search'
       navigate(from, { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      if (err instanceof ApiClientError) {
+        // Handle specific error codes
+        if (err.status === 404) {
+          setError('No account found with this email. Please register first.')
+        } else if (err.status === 401 || err.code === 'WRONG_PASSWORD') {
+          setError('Incorrect password. Please try again.')
+        } else if (err.code === 'NETWORK_ERROR') {
+          setError('Network error. Please check your connection and try again.')
+        } else {
+          setError(err.message || 'Login failed. Please try again.')
+        }
+      } else {
+        setError(err instanceof Error ? err.message : 'Login failed')
+      }
     }
   }
 

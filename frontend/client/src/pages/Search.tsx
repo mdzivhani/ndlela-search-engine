@@ -12,6 +12,7 @@ import SearchHero from '../components/SearchHero'
 import FilterPanel from '../components/FilterPanel'
 import ActivityMap from '../components/ActivityMap'
 import RecommendationsSections from '../components/RecommendationsSections'
+import EmptySearchState from '../components/EmptySearchState'
 
 export default function Search() {
   const { user, logout } = useAuth()
@@ -64,17 +65,27 @@ export default function Search() {
   )
 
   // Perform initial search when user location is available
+  // ONLY if there's a query parameter in the URL
   useEffect(() => {
     if (userLocation && !isLocationLoading && !results) {
-      const initialSearch: SearchRequest = {
-        lat: userLocation.latitude,
-        lng: userLocation.longitude,
-        radiusKm: 20,
-        limit: 20,
+      // Check if there are actual search parameters in the URL
+      const params = new URLSearchParams(window.location.search)
+      const hasQuery = params.has('q') || params.has('category') || params.has('lat')
+
+      // Only auto-search if user explicitly requested it via URL params
+      if (hasQuery) {
+        const initialSearch: SearchRequest = {
+          q: params.get('q') || undefined,
+          category: params.get('category') || undefined,
+          lat: userLocation.latitude,
+          lng: userLocation.longitude,
+          radiusKm: 20,
+          limit: 20,
+        }
+        handleSearch(initialSearch)
       }
-      handleSearch(initialSearch)
     }
-  }, [userLocation, isLocationLoading, handleSearch])
+  }, [userLocation, isLocationLoading, handleSearch, results])
 
   const handleFiltersChange = useCallback((newFilters: Partial<SearchRequest>) => {
     setFilters(newFilters)
@@ -135,16 +146,31 @@ export default function Search() {
 
         {error && <div className="error-message">{error}</div>}
 
-        {/* Show recommendations when no search results or empty results */}
-        {(!results || results.results.length === 0) && !error && !isLoading && (
-          <RecommendationsSections
-            forYou={[]}
-            topPicks={[]}
-            recentlyViewed={[]}
-            onActivityClick={(id) => navigate(`/business/${id}`)}
-            onRegionClick={handleRegionClick}
+        {/* Show empty state when no search has been performed */}
+        {!results && !isLoading && !error && (
+          <EmptySearchState
+            hasUserLocation={!!userLocation}
+            message="Start your adventure"
           />
         )}
+
+        {/* Show recommendations when results are empty but search was performed */}
+        {results && results.results.length === 0 && !error && (
+          <div>
+            <div className="error-message">
+              No results found for "{results.query}". Try adjusting your filters or search area.
+            </div>
+            <RecommendationsSections
+              forYou={[]}
+              topPicks={[]}
+              recentlyViewed={[]}
+              onActivityClick={(id) => navigate(`/business/${id}`)}
+              onRegionClick={handleRegionClick}
+            />
+          </div>
+        )}
+
+        {/* Previous recommendations fallback (removed - using EmptySearchState instead) */}
 
         {/* Results Section with Map and List */}
         {results && (

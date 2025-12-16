@@ -46,6 +46,17 @@ export default function SearchHero({ onSearch, isLoading, recentSearches = [] }:
   const [category, setCategory] = useState('All')
   const [showSuggestions, setShowSuggestions] = useState(false)
 
+  // Initialize from URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('q')) setQuery(params.get('q') || '')
+    if (params.has('category')) setCategory(params.get('category') || 'All')
+    if (params.has('checkIn')) setCheckIn(params.get('checkIn') || '')
+    if (params.has('checkOut')) setCheckOut(params.get('checkOut') || '')
+    if (params.has('adults')) setAdults(Number(params.get('adults')) || 2)
+    if (params.has('children')) setChildren(Number(params.get('children')) || 0)
+  }, [])
+
   // Focus main search input when header search icon is clicked
   useEffect(() => {
     const handler = () => {
@@ -61,18 +72,12 @@ export default function SearchHero({ onSearch, isLoading, recentSearches = [] }:
       e.preventDefault()
 
       const searchParams: SearchRequest = {
-        q: query || undefined,
+        q: query || location || undefined,
         category: category !== 'All' ? category : undefined,
         checkIn: checkIn || undefined,
         checkOut: checkOut || undefined,
         adults: adults,
         children: children,
-      }
-
-      // TODO: If location is specified, geocode it to get lat/lng
-      // For now, we'll pass it as the query text
-      if (location) {
-        searchParams.q = location
       }
 
       // Store search parameters for cart quantity defaults
@@ -84,10 +89,21 @@ export default function SearchHero({ onSearch, isLoading, recentSearches = [] }:
         location: location || undefined,
       })
 
+      // Update URL with search parameters
+      const urlParams = new URLSearchParams()
+      if (searchParams.q) urlParams.set('q', searchParams.q)
+      if (searchParams.category) urlParams.set('category', searchParams.category)
+      if (searchParams.checkIn) urlParams.set('checkIn', searchParams.checkIn)
+      if (searchParams.checkOut) urlParams.set('checkOut', searchParams.checkOut)
+      if (searchParams.adults && searchParams.adults > 0) urlParams.set('adults', String(searchParams.adults))
+      if (searchParams.children && searchParams.children > 0) urlParams.set('children', String(searchParams.children))
+      
+      window.history.pushState({}, '', `?${urlParams.toString()}`)
+
       onSearch(searchParams)
       setShowSuggestions(false)
     },
-    [query, location, checkIn, checkOut, adults, children, category, onSearch]
+    [query, location, checkIn, checkOut, adults, children, category, onSearch, setSearchParams]
   )
 
   const handleQuickSearch = (area: string) => {

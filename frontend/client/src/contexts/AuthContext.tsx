@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useCallback, useEffect, useState } from 'react'
 import { AuthResponse, AuthContextType, User, LoginRequest, RegisterRequest } from '../types/auth'
+import { apiClient, ApiClientError } from '../utils/apiClient'
 
-const API_BASE_URL = '/api'
 const TOKEN_KEY = 'auth_token'
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -17,16 +17,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (token) {
         try {
           // Verify token is still valid by making a request
-          const response = await fetch(`${API_BASE_URL}/auth/me`, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-          if (response.ok) {
-            const userData = await response.json()
-            setUser(userData)
-          } else {
-            // Token expired or invalid
-            localStorage.removeItem(TOKEN_KEY)
-          }
+          const userData = await apiClient.get<User>('/auth/me')
+          setUser(userData)
         } catch (error) {
           console.error('Failed to verify token:', error)
           localStorage.removeItem(TOKEN_KEY)
@@ -41,20 +33,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password } as LoginRequest)
-      })
+      const data = await apiClient.post<AuthResponse>('/auth/login', {
+        email,
+        password,
+      } as LoginRequest, { skipAuth: true })
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Login failed')
-      }
-
-      const data: AuthResponse = await response.json()
       localStorage.setItem(TOKEN_KEY, data.token)
       setUser(data.user)
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        throw error
+      }
+      throw new Error('Login failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -63,20 +53,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = useCallback(async (email: string, password: string, name: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name } as RegisterRequest)
-      })
+      const data = await apiClient.post<AuthResponse>('/auth/register', {
+        email,
+        password,
+        name,
+      } as RegisterRequest, { skipAuth: true })
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Registration failed')
-      }
-
-      const data: AuthResponse = await response.json()
       localStorage.setItem(TOKEN_KEY, data.token)
       setUser(data.user)
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        throw error
+      }
+      throw new Error('Registration failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
