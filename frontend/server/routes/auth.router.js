@@ -41,10 +41,10 @@ const avatarStorage = multer.diskStorage({
 
 const upload = multer({
   storage: avatarStorage,
-  limits: { fileSize: 1_000_000 }, // 1MB
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
-    if (!['image/png', 'image/jpeg'].includes(file.mimetype)) {
-      return cb(new Error('Unsupported file type. Use JPG or PNG.'));
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.mimetype)) {
+      return cb(new Error('Unsupported file type. Use JPG, PNG, or WEBP.'));
     }
     cb(null, true);
   }
@@ -70,17 +70,26 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password required' });
+      return res.status(400).json({ 
+        message: 'Email and password required',
+        code: 'VALIDATION_ERROR'
+      });
     }
 
     const result = await query('SELECT id, email, password_hash, name, profile_picture, created_at FROM users WHERE email=$1', [email]);
     if (result.rowCount === 0) {
-      return res.status(404).json({ message: 'Email not registered. Please register to continue.' , code: 'EMAIL_NOT_REGISTERED' });
+      return res.status(404).json({ 
+        message: 'No account found with this email. Please register first.' ,
+        code: 'EMAIL_NOT_REGISTERED'
+      });
     }
     const user = result.rows[0];
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
-      return res.status(401).json({ message: 'Incorrect password. Please try again.' , code: 'WRONG_PASSWORD' });
+      return res.status(401).json({ 
+        message: 'Incorrect password. Please try again.' ,
+        code: 'WRONG_PASSWORD'
+      });
     }
 
     const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: TOKEN_EXPIRY });
@@ -96,7 +105,10 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    return res.status(500).json({ message: 'Login failed' });
+    return res.status(500).json({ 
+      message: 'Login failed. Please try again later.',
+      code: 'SERVER_ERROR'
+    });
   }
 });
 
@@ -106,12 +118,34 @@ router.post('/register', async (req, res) => {
     const { email, password, name } = req.body;
 
     if (!email || !password || !name) {
-      return res.status(400).json({ message: 'Email, password, and name required' });
+      return res.status(400).json({ 
+        message: 'Email, password, and name required',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    // Password strength validation
+    if (password.length < 8) {
+      return res.status(400).json({ 
+        message: 'Password must be at least 8 characters long',
+        code: 'WEAK_PASSWORD'
+      });
+    }
+
+    const hasNumberOrSpecial = /[\d!@#$%^&*(),.?":{}|<>]/.test(password);
+    if (!hasNumberOrSpecial) {
+      return res.status(400).json({ 
+        message: 'Password must contain at least one number or special character',
+        code: 'WEAK_PASSWORD'
+      });
     }
 
     const exists = await query('SELECT 1 FROM users WHERE email=$1', [email]);
     if (exists.rowCount > 0) {
-      return res.status(409).json({ message: 'User already exists' });
+      return res.status(409).json({ 
+        message: 'An account with this email already exists',
+        code: 'EMAIL_EXISTS'
+      });
     }
 
     const userId = `user-${Date.now()}`;
@@ -134,7 +168,10 @@ router.post('/register', async (req, res) => {
     });
   } catch (error) {
     console.error('Register error:', error);
-    return res.status(500).json({ message: 'Registration failed' });
+    return res.status(500).json({ 
+      message: 'Registration failed. Please try again later.',
+      code: 'SERVER_ERROR'
+    });
   }
 });
 

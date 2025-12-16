@@ -12,11 +12,14 @@ import SearchHero from '../components/SearchHero'
 import FilterPanel from '../components/FilterPanel'
 import ActivityMap from '../components/ActivityMap'
 import RecommendationsSections from '../components/RecommendationsSections'
+import EmptySearchState from '../components/EmptySearchState'
+import SavedSearches, { saveSearch, SavedSearch } from '../components/SavedSearches'
+import FilterChips from '../components/FilterChips'
 
 export default function Search() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const { location: userLocation, isLoading: isLocationLoading } = useGeolocation()
+  const { location: userLocation, isLoading: isLocationLoading, requestLocation } = useGeolocation()
   
   const [results, setResults] = useState<SearchResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -53,6 +56,18 @@ export default function Search() {
 
         const response = await performSearch(searchParams)
         setResults(response)
+
+        // Save this search if user is logged in
+        if (user) {
+          saveSearch({
+            q: params.q,
+            category: params.category,
+            checkIn: params.checkIn,
+            checkOut: params.checkOut,
+            adults: params.adults,
+            children: params.children,
+          })
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Search failed')
         setResults(null)
@@ -60,21 +75,31 @@ export default function Search() {
         setIsLoading(false)
       }
     },
-    [filters, userLocation]
+    [filters, userLocation, user]
   )
 
   // Perform initial search when user location is available
+  // ONLY if there's a query parameter in the URL
   useEffect(() => {
     if (userLocation && !isLocationLoading && !results) {
-      const initialSearch: SearchRequest = {
-        lat: userLocation.latitude,
-        lng: userLocation.longitude,
-        radiusKm: 20,
-        limit: 20,
+      // Check if there are actual search parameters in the URL
+      const params = new URLSearchParams(window.location.search)
+      const hasQuery = params.has('q') || params.has('category') || params.has('lat')
+
+      // Only auto-search if user explicitly requested it via URL params
+      if (hasQuery) {
+        const initialSearch: SearchRequest = {
+          q: params.get('q') || undefined,
+          category: params.get('category') || undefined,
+          lat: userLocation.latitude,
+          lng: userLocation.longitude,
+          radiusKm: 20,
+          limit: 20,
+        }
+        handleSearch(initialSearch)
       }
-      handleSearch(initialSearch)
     }
-  }, [userLocation, isLocationLoading, handleSearch])
+  }, [userLocation, isLocationLoading, handleSearch, results])
 
   const handleFiltersChange = useCallback((newFilters: Partial<SearchRequest>) => {
     setFilters(newFilters)
@@ -135,16 +160,50 @@ export default function Search() {
 
         {error && <div className="error-message">{error}</div>}
 
-        {/* Show recommendations when no search results or empty results */}
-        {(!results || results.results.length === 0) && !error && !isLoading && (
-          <RecommendationsSections
-            forYou={[]}
-            topPicks={[]}
-            recentlyViewed={[]}
-            onActivityClick={(id) => navigate(`/business/${id}`)}
-            onRegionClick={handleRegionClick}
+        {/* Show active filter chips */}
+        {results && (
+          <FilterChips
+            filters={filters}
+            onRemoveFilter={(key) => {
+              setFilters((prev) => {
+                const updated = { ...prev }
+                delete updated[key as keyof SearchRequest]
+                return updated
+              })
+            }}
+            onClearAll={() => setFilters({ sortBy: 'relevance', radiusKm: 20 })}
           />
         )}
+
+        {/* Show empty state when no search has been performed */}
+        {!results && !isLoading && !error && (
+          <div>
+            <SavedSearches onSelectSearch={(search) => handleSearch(search)} />
+            <EmptySearchState
+              hasUserLocation={!!userLocation}
+              onQuickSearch={(query) => handleSearch({ q: query })}
+              onUseMyLocation={requestLocation}
+            />
+          </div>
+        )}
+
+        {/* Show recommendations when results are empty but search was performed */}
+        {results && results.results.length === 0 && !error && (
+          <div>
+            <div className="error-message">
+              No results found for "{results.query}". Try adjusting your filters or search area.
+            </div>
+            <RecommendationsSections
+              forYou={[]}
+              topPicks={[]}
+              recentlyViewed={[]}
+              onActivityClick={(id) => navigate(`/business/${id}`)}
+              onRegionClick={handleRegionClick}
+            />
+          </div>
+        )}
+
+        {/* Previous recommendations fallback (removed - using EmptySearchState instead) */}
 
         {/* Results Section with Map and List */}
         {results && (

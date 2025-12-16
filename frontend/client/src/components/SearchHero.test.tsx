@@ -13,6 +13,8 @@ describe('SearchHero - Compact Layout', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // Ensure no query params influence initial state
+    window.history.pushState({}, '', '/')
   })
 
   it('renders in compact layout with all form fields', () => {
