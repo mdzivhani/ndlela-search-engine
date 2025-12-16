@@ -14,6 +14,7 @@ import ActivityMap from '../components/ActivityMap'
 import RecommendationsSections from '../components/RecommendationsSections'
 import EmptySearchState from '../components/EmptySearchState'
 import SavedSearches, { saveSearch, SavedSearch } from '../components/SavedSearches'
+import FilterChips from '../components/FilterChips'
 
 export default function Search() {
   const { user, logout } = useAuth()
@@ -158,6 +159,21 @@ export default function Search() {
         />
 
         {error && <div className="error-message">{error}</div>}
+
+        {/* Show active filter chips */}
+        {results && (
+          <FilterChips
+            filters={filters}
+            onRemoveFilter={(key) => {
+              setFilters((prev) => {
+                const updated = { ...prev }
+                delete updated[key as keyof SearchRequest]
+                return updated
+              })
+            }}
+            onClearAll={() => setFilters({ sortBy: 'relevance', radiusKm: 20 })}
+          />
+        )}
 
         {/* Show empty state when no search has been performed */}
         {!results && !isLoading && !error && (

@@ -2421,6 +2421,80 @@ body {
   max-width: 150px;
 }
 
+/* Filter Chips */
+.filter-chips-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 20px;
+  font-size: 0.875rem;
+}
+
+.chip-label {
+  font-weight: 600;
+}
+
+.chip-value {
+  font-weight: 500;
+}
+
+.chip-remove {
+  margin-left: 0.25rem;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 0.875rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.chip-remove:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.clear-all-filters {
+  padding: 0.5rem 1rem;
+  background: var(--gray-200);
+  border: 1px solid var(--gray-300);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--gray-700);
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.clear-all-filters:hover {
+  background: var(--gray-300);
+  color: var(--gray-900);
+}
+
 /* Business Detail Page - Refined Spacing */
 .business-detail {
   display: flex;
