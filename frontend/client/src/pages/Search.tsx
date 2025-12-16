@@ -13,11 +13,12 @@ import FilterPanel from '../components/FilterPanel'
 import ActivityMap from '../components/ActivityMap'
 import RecommendationsSections from '../components/RecommendationsSections'
 import EmptySearchState from '../components/EmptySearchState'
+import SavedSearches, { saveSearch, SavedSearch } from '../components/SavedSearches'
 
 export default function Search() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const { location: userLocation, isLoading: isLocationLoading } = useGeolocation()
+  const { location: userLocation, isLoading: isLocationLoading, requestLocation } = useGeolocation()
   
   const [results, setResults] = useState<SearchResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -54,6 +55,18 @@ export default function Search() {
 
         const response = await performSearch(searchParams)
         setResults(response)
+
+        // Save this search if user is logged in
+        if (user) {
+          saveSearch({
+            q: params.q,
+            category: params.category,
+            checkIn: params.checkIn,
+            checkOut: params.checkOut,
+            adults: params.adults,
+            children: params.children,
+          })
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Search failed')
         setResults(null)
@@ -61,7 +74,7 @@ export default function Search() {
         setIsLoading(false)
       }
     },
-    [filters, userLocation]
+    [filters, userLocation, user]
   )
 
   // Perform initial search when user location is available
@@ -148,10 +161,14 @@ export default function Search() {
 
         {/* Show empty state when no search has been performed */}
         {!results && !isLoading && !error && (
-          <EmptySearchState
-            hasUserLocation={!!userLocation}
-            message="Start your adventure"
-          />
+          <div>
+            <SavedSearches onSelectSearch={(search) => handleSearch(search)} />
+            <EmptySearchState
+              hasUserLocation={!!userLocation}
+              onQuickSearch={(query) => handleSearch({ q: query })}
+              onUseMyLocation={requestLocation}
+            />
+          </div>
         )}
 
         {/* Show recommendations when results are empty but search was performed */}
