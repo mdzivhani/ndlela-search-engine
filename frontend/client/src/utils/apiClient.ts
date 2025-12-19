@@ -108,7 +108,9 @@ export async function apiFetch<T = unknown>(
     } else {
       // Success but not JSON - log warning
       const text = await response.text()
-      console.warn(`[API Warning] Non-JSON success response for ${endpoint}:`, text.substring(0, 100))
+      if (import.meta.env.DEV) {
+        console.warn(`[API Warning] Non-JSON success response for ${endpoint}:`, text.substring(0, 100))
+      }
       return text as T
     }
   } catch (error) {
