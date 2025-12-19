@@ -43,7 +43,7 @@ See the complete working configuration in the root of this repository:
 
 ### Container Nginx Configuration
 
-The Docker container client also has its own nginx config at:
+The client Docker container also has its own nginx config at:
 `frontend/client/nginx.conf`
 
 This handles routing within the Docker network and is separate from the host nginx.
