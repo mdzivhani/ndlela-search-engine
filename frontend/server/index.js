@@ -21,8 +21,8 @@ app.use(morgan('combined', {
 	}
 }));
 
-// Serve uploaded assets (avatars)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve uploaded assets (avatars) from project-level uploads dir
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 app.use('/api/auth', authRouter);
 // Support both /api/search (intended) and /search (if upstream strips prefix)
