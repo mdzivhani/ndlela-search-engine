@@ -1,40 +1,107 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useCart } from '../contexts/CartContext'
 
 export default function Checkout() {
   const { items, getTotalPrice } = useCart()
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  const handleConfirmPurchase = async () => {
+    setIsProcessing(true)
+    // Stub: simulate processing delay
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    setIsProcessing(false)
+    // TODO: Implement actual purchase logic
+    alert('Purchase confirmed (stub)')
+  }
 
   if (items.length === 0) {
     return (
-      <div className="checkout-container">
-        <h1>Checkout</h1>
-        <p>Your cart is empty.</p>
+      <div className="checkout-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem 1rem' }}>
+        <h1 style={{ marginBottom: '1rem', fontSize: '1.75rem', fontWeight: 600 }}>Checkout</h1>
+        <p style={{ color: '#666' }}>Your cart is empty.</p>
       </div>
     )
   }
 
   return (
-    <div className="checkout-container" style={{ padding: '1rem' }}>
-      <h1>Checkout</h1>
-      <div className="order-summary" style={{ marginTop: '1rem' }}>
-        {items.map((item) => (
-          <div key={item.serviceId} className="summary-item" style={{ display:'flex', justifyContent:'space-between', padding:'0.5rem 0', borderBottom:'1px solid #eee' }}>
-            <div>
-              <strong>{item.serviceName}</strong>
-              <div style={{ color:'#666', fontSize:'0.9rem' }}>{item.businessName}</div>
+    <div className="checkout-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem 1rem' }}>
+      {/* Page Title */}
+      <h1 style={{ marginBottom: '2rem', fontSize: '1.75rem', fontWeight: 600 }}>Checkout</h1>
+      
+      {/* Section 1: Items */}
+      <section style={{ marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem', color: '#333' }}>Items</h2>
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+          {items.map((item, index) => (
+            <div 
+              key={item.serviceId} 
+              style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'flex-start',
+                padding: '1rem', 
+                borderBottom: index < items.length - 1 ? '1px solid #e5e7eb' : 'none',
+                backgroundColor: '#fff'
+              }}
+            >
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: '1rem', marginBottom: '0.25rem', color: '#111' }}>
+                  {item.serviceName}
+                </div>
+                <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                  {item.businessName}
+                </div>
+                <div style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+                  Qty: {item.quantity}
+                </div>
+              </div>
+              <div style={{ fontWeight: 600, fontSize: '1rem', color: '#111', textAlign: 'right' }}>
+                R{(item.price * item.quantity).toLocaleString()}
+              </div>
             </div>
-            <div>
-              R{(item.price * item.quantity).toLocaleString()} ({item.quantity})
-            </div>
-          </div>
-        ))}
-        <div className="summary-total" style={{ display:'flex', justifyContent:'space-between', padding:'0.75rem 0', fontWeight:600 }}>
-          <span>Total</span>
-          <span>R{getTotalPrice().toLocaleString()}</span>
+          ))}
         </div>
-      </div>
-      <div style={{ marginTop:'1rem' }}>
-        <button className="btn-primary">Confirm Purchase (stub)</button>
+      </section>
+
+      {/* Section 2: Order Summary */}
+      <section style={{ marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '1rem', color: '#333' }}>Order Summary</h2>
+        <div style={{ 
+          border: '1px solid #e5e7eb', 
+          borderRadius: '8px', 
+          padding: '1.5rem',
+          backgroundColor: '#f9fafb'
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center'
+          }}>
+            <span style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111' }}>Total</span>
+            <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0057b7' }}>
+              R{getTotalPrice().toLocaleString()}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Confirm Purchase Button */}
+      <div>
+        <button 
+          className="btn-primary" 
+          onClick={handleConfirmPurchase}
+          disabled={isProcessing || items.length === 0}
+          style={{ 
+            width: '100%', 
+            padding: '0.875rem 1.5rem',
+            fontSize: '1rem',
+            fontWeight: 600,
+            opacity: isProcessing ? 0.7 : 1,
+            cursor: isProcessing ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {isProcessing ? 'Processing...' : 'Confirm purchase'}
+        </button>
       </div>
     </div>
   )

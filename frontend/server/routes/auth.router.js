@@ -351,9 +351,11 @@ router.post('/avatar', verifyToken, (req, res) => {
       return res.status(400).json({ success: false, message: 'No file uploaded', code: 'NO_FILE' });
     }
     
+    // Declare userId and fileRelPath before try block to ensure scope in catch
+    const userId = req.user.id;
+    const fileRelPath = `/uploads/avatars/${userId}/${req.file.filename}`;
+    
     try {
-      const userId = req.user.id;
-      const fileRelPath = `/uploads/avatars/${userId}/${req.file.filename}`;
       console.log('Avatar uploaded successfully:', fileRelPath);
       
       await query('UPDATE users SET profile_picture=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2', [fileRelPath, userId]);
@@ -363,7 +365,6 @@ router.post('/avatar', verifyToken, (req, res) => {
     } catch (e) {
       // Attempt cleanup of uploaded file if DB update fails
       try {
-        const fileRelPath = `/uploads/avatars/${userId}/${req.file.filename}`;
         const absPath = path.join(__dirname, '..', fileRelPath);
         if (fs.existsSync(absPath)) fs.unlinkSync(absPath);
       } catch (cleanupErr) {
