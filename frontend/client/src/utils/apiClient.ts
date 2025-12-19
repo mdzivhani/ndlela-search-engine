@@ -89,7 +89,9 @@ export async function apiFetch<T = unknown>(
       } else {
         // Non-JSON error (HTML error page, proxy error, etc.)
         const text = await response.text()
-        console.error(`[API Error] Non-JSON response for ${endpoint}:`, text.substring(0, 200))
+        if (import.meta.env.DEV) {
+          console.error(`[API Error] Non-JSON response for ${endpoint}:`, text.substring(0, 200))
+        }
         throw new ApiClientError(
           `Server error (${response.status}). Please try again later.`,
           {
