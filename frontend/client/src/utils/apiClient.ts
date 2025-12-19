@@ -42,9 +42,9 @@ export async function apiFetch<T = unknown>(
   
   // Build headers (handle FormData uploads by not setting Content-Type)
   const isFormDataBody = fetchOptions.body instanceof FormData
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     ...(isFormDataBody ? {} : { 'Content-Type': 'application/json' }),
-    ...fetchOptions.headers,
+    ...(fetchOptions.headers as Record<string, string> || {}),
   }
 
   // Add auth token if not skipped
