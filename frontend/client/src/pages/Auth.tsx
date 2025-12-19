@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 type AuthMode = 'login' | 'register'
@@ -138,6 +138,7 @@ export default function Auth() {
                 required
                 autoComplete="current-password"
               />
+              <Link to="/forgot-password" className="form-link">Forgot password?</Link>
             </div>
 
             <button type="submit" disabled={isLoading} className="btn-primary btn-auth">

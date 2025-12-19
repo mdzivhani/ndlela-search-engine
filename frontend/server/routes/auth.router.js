@@ -17,13 +17,14 @@ const TOKEN_EXPIRY = process.env.JWT_EXPIRATION || '7d';
 
 // Default profile picture path
 const DEFAULT_PROFILE_PICTURE = '/uploads/default/avatar.png';
+const UPLOADS_ROOT = path.join(__dirname, '..', '..', 'uploads');
 
 // Multer storage configuration for avatars
 const avatarStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     try {
       const userId = (req.user && req.user.id) || 'unknown';
-      const dest = path.join(__dirname, '..', 'uploads', 'avatars', userId);
+      const dest = path.join(UPLOADS_ROOT, 'avatars', userId);
       fs.mkdirSync(dest, { recursive: true });
       cb(null, dest);
     } catch (e) {
@@ -361,11 +362,13 @@ router.post('/avatar', verifyToken, (req, res) => {
       
       return res.json({ success: true, url: fileRelPath });
     } catch (e) {
+      const userId = req.user?.id;
       // Attempt cleanup of uploaded file if DB update fails
       try {
-        const fileRelPath = `/uploads/avatars/${userId}/${req.file.filename}`;
-        const absPath = path.join(__dirname, '..', fileRelPath);
-        if (fs.existsSync(absPath)) fs.unlinkSync(absPath);
+        if (userId) {
+          const absPath = path.join(UPLOADS_ROOT, 'avatars', userId, req.file.filename);
+          if (fs.existsSync(absPath)) fs.unlinkSync(absPath);
+        }
       } catch (cleanupErr) {
         console.warn('Failed avatar file cleanup after DB error', cleanupErr);
       }
