@@ -26,7 +26,7 @@ export const provinces: Province[] = [
   { 
     id: 3, 
     name: "KwaZulu-Natal", 
-    imageUrl: "https://images.unsplash.com/photo-1611743265019-e1c8b0f8e58c?w=800&q=80",
+    imageUrl: "https://images.unsplash.com/photo-1569163139394-de4798aa62b1?w=800&q=80",
     attractionCount: 0
   },
   { 
@@ -38,7 +38,7 @@ export const provinces: Province[] = [
   { 
     id: 5, 
     name: "Limpopo", 
-    imageUrl: "https://images.unsplash.com/photo-1535338454770-a8bdb3d6eb56?w=800&q=80",
+    imageUrl: "https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80",
     attractionCount: 0
   },
   { 

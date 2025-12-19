@@ -400,5 +400,251 @@ router.delete('/avatar', verifyToken, async (req, res) => {
   }
 });
 
+// Request password reset endpoint
+router.post('/forgot-password', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  
+  try {
+    const { email } = req.body;
+    if (!email || !email.trim()) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email is required',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    // Check if user exists
+    const result = await query('SELECT id, email FROM users WHERE email=$1', [email.toLowerCase()]);
+    if (result.rowCount === 0) {
+      // Return success even if email doesn't exist (security best practice)
+      return res.json({ 
+        success: true, 
+        message: 'If an account exists with this email, a password reset link has been sent.',
+        code: 'RESET_EMAIL_SENT'
+      });
+    }
+
+    const user = result.rows[0];
+    
+    // Generate reset token (valid for 1 hour)
+    const resetToken = jwt.sign({ id: user.id, email: user.email, type: 'reset' }, JWT_SECRET, { expiresIn: '1h' });
+    
+    // Store reset token as-is (plain JWT string) in database
+    // No bcrypt hashing - we verify JWT signature instead
+    const tokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    
+    await query(
+      'UPDATE users SET reset_token=$1, reset_token_expiry=$2 WHERE id=$3',
+      [resetToken, tokenExpiry, user.id]
+    );
+
+    console.log(`Password reset token generated for ${email}`);
+    
+    // TODO: In production, remove token from response and send via email only
+    return res.json({ 
+      success: true, 
+      message: 'If an account exists with this email, a password reset link has been sent.',
+      code: 'RESET_EMAIL_SENT',
+      token: resetToken  // TEMPORARY: Return token since email is stubbed. Remove in production.
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Error processing password reset request',
+      code: 'SERVER_ERROR'
+    });
+  }
+});
+
+// Verify reset token endpoint
+router.post('/verify-reset-token', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  
+  try {
+    const { token } = req.body;
+    
+    // A2: Validate token is not empty or whitespace
+    if (typeof token !== 'string' || token.trim().length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Reset token is required',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    // Verify JWT token signature
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (e) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid or expired reset token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    if (decoded.type !== 'reset') {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid reset token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    // Check if token exists in DB and hasn't expired
+    const result = await query(
+      'SELECT id, email, reset_token, reset_token_expiry FROM users WHERE id=$1',
+      [decoded.id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    const user = result.rows[0];
+    
+    // Verify token expiry
+    if (!user.reset_token_expiry || new Date() > new Date(user.reset_token_expiry)) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Reset token has expired',
+        code: 'TOKEN_EXPIRED'
+      });
+    }
+
+    // A4: Compare plain token strings (no bcrypt)
+    if (user.reset_token !== token) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid reset token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    return res.json({ 
+      success: true, 
+      message: 'Reset token is valid',
+      code: 'TOKEN_VALID',
+      email: user.email
+    });
+  } catch (error) {
+    console.error('Verify reset token error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Error verifying reset token',
+      code: 'SERVER_ERROR'
+    });
+  }
+});
+
+// Reset password endpoint
+router.post('/reset-password', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  
+  try {
+    const { token, newPassword } = req.body;
+    
+    // A2: Validate token is not empty or whitespace
+    if (typeof token !== 'string' || token.trim().length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Reset token is required',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    // A3: Validate new password matches registration policy
+    if (!newPassword) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'New password is required',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Password must be at least 8 characters long and include a number or special character',
+        code: 'PASSWORD_TOO_WEAK'
+      });
+    }
+
+    const hasNumberOrSpecial = /[\d!@#$%^&*(),.?":{}|<>]/.test(newPassword);
+    if (!hasNumberOrSpecial) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Password must be at least 8 characters long and include a number or special character',
+        code: 'PASSWORD_TOO_WEAK'
+      });
+    }
+
+    // Verify JWT token signature
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (e) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid or expired reset token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    if (decoded.type !== 'reset') {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid reset token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    // A5: Use guarded update to prevent reuse and race conditions
+    // Hash new password
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    
+    // Update password only if token matches, not expired, and not null (single-use)
+    const updateResult = await query(
+      `UPDATE users 
+       SET password_hash=$1, reset_token=NULL, reset_token_expiry=NULL, updated_at=CURRENT_TIMESTAMP 
+       WHERE id=$2 
+         AND reset_token=$3 
+         AND reset_token_expiry > CURRENT_TIMESTAMP 
+         AND reset_token IS NOT NULL
+       RETURNING id`,
+      [passwordHash, decoded.id, token]
+    );
+
+    // If no rows were updated, token was invalid, expired, or already used
+    if (updateResult.rowCount === 0) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid or already used reset token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    return res.json({ 
+      success: true, 
+      message: 'Password reset successful. You can now login with your new password.',
+      code: 'PASSWORD_RESET_SUCCESS'
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Error resetting password',
+      code: 'SERVER_ERROR'
+    });
+  }
+});
+
 
 module.exports = router;

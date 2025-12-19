@@ -11,9 +11,19 @@ async function migrate() {
     city VARCHAR(100),
     province VARCHAR(100),
     profile_picture TEXT,
+    reset_token TEXT,
+    reset_token_expiry TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );`);
+
+  // Add columns if they don't exist (for existing databases)
+  try {
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token TEXT;`);
+    await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expiry TIMESTAMP;`);
+  } catch (e) {
+    console.log('Reset token columns may already exist:', e.message);
+  }
 }
 
 module.exports = { migrate };

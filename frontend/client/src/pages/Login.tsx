@@ -74,6 +74,7 @@ export default function Login() {
               placeholder="••••••••"
               required
             />
+            <Link to="/forgot-password" className="form-link">Forgot password?</Link>
           </div>
 
           <button type="submit" disabled={isLoading} className="btn-primary">
