@@ -18,16 +18,33 @@ export async function uploadAvatar(file: File): Promise<AvatarUploadResult> {
 
   const formData = new FormData()
   formData.append('avatar', file)
-  const payload = await apiClient.postForm<{ success: boolean; url: string }>('/auth/avatar', formData)
-  if (!payload.success || !payload.url) {
-    throw new Error('Avatar upload failed')
+  
+  try {
+    console.log('[Avatar Upload] Starting upload:', { fileName: file.name, fileSize: file.size, fileType: file.type })
+    const payload = await apiClient.postForm<{ success: boolean; url: string }>('/auth/avatar', formData)
+    console.log('[Avatar Upload] Response:', payload)
+    
+    if (!payload.success || !payload.url) {
+      throw new Error('Avatar upload failed: Server returned invalid response')
+    }
+    return { url: payload.url }
+  } catch (error) {
+    console.error('[Avatar Upload] Failed:', error)
+    throw error
   }
-  return { url: payload.url }
 }
 
 export async function removeAvatar(): Promise<void> {
-  const payload = await apiClient.delete<{ success: boolean }>('/auth/avatar')
-  if (!payload.success) {
-    throw new Error('Avatar remove failed')
+  try {
+    console.log('[Avatar Remove] Starting removal')
+    const payload = await apiClient.delete<{ success: boolean }>('/auth/avatar')
+    console.log('[Avatar Remove] Response:', payload)
+    
+    if (!payload.success) {
+      throw new Error('Avatar remove failed: Server returned invalid response')
+    }
+  } catch (error) {
+    console.error('[Avatar Remove] Failed:', error)
+    throw error
   }
 }

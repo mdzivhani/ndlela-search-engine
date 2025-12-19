@@ -337,15 +337,18 @@ router.put('/change-password', verifyToken, async (req, res) => {
 // Upload avatar endpoint
 router.post('/avatar', verifyToken, (req, res) => {
   upload.single('avatar')(req, res, async function (err) {
+    // Ensure all responses are JSON
+    res.setHeader('Content-Type', 'application/json');
+    
     if (err) {
       console.error('Multer error:', err);
-      return res.status(400).json({ success: false, message: err.message });
+      return res.status(400).json({ success: false, message: err.message, code: 'UPLOAD_ERROR' });
     }
     
     // Check if file was uploaded
     if (!req.file) {
       console.error('No file uploaded');
-      return res.status(400).json({ success: false, message: 'No file uploaded' });
+      return res.status(400).json({ success: false, message: 'No file uploaded', code: 'NO_FILE' });
     }
     
     try {
@@ -360,23 +363,27 @@ router.post('/avatar', verifyToken, (req, res) => {
     } catch (e) {
       // Attempt cleanup of uploaded file if DB update fails
       try {
+        const fileRelPath = `/uploads/avatars/${userId}/${req.file.filename}`;
         const absPath = path.join(__dirname, '..', fileRelPath);
         if (fs.existsSync(absPath)) fs.unlinkSync(absPath);
       } catch (cleanupErr) {
         console.warn('Failed avatar file cleanup after DB error', cleanupErr);
       }
       console.error('Avatar upload DB update error:', e);
-      return res.status(500).json({ success: false, message: 'Avatar upload failed' });
+      return res.status(500).json({ success: false, message: 'Avatar upload failed', code: 'DB_ERROR' });
     }
   });
 });
 
 // Remove avatar endpoint
 router.delete('/avatar', verifyToken, async (req, res) => {
+  // Ensure JSON response
+  res.setHeader('Content-Type', 'application/json');
+  
   try {
     const userId = req.user.id;
     const result = await query('SELECT profile_picture FROM users WHERE id=$1', [userId]);
-    if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'User not found' });
+    if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'User not found', code: 'USER_NOT_FOUND' });
     const current = result.rows[0].profile_picture;
     if (current && current !== DEFAULT_PROFILE_PICTURE) {
       const filePath = path.join(__dirname, '..', current);
@@ -389,7 +396,7 @@ router.delete('/avatar', verifyToken, async (req, res) => {
     return res.json({ success: true, profilePicture: DEFAULT_PROFILE_PICTURE });
   } catch (e) {
     console.error('Avatar remove error:', e);
-    return res.status(500).json({ success: false, message: 'Avatar remove failed' });
+    return res.status(500).json({ success: false, message: 'Avatar remove failed', code: 'REMOVE_ERROR' });
   }
 });
 

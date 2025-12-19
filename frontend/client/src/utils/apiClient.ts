@@ -61,6 +61,15 @@ export async function apiFetch<T = unknown>(
       headers,
     })
 
+    // Log response for debugging (especially for upload endpoints)
+    if (import.meta.env.DEV) {
+      console.log(`[API] ${fetchOptions.method || 'GET'} ${endpoint}:`, {
+        status: response.status,
+        contentType: response.headers.get('content-type'),
+        ok: response.ok
+      })
+    }
+
     // Check content type before parsing
     const contentType = response.headers.get('content-type')
     const isJson = contentType?.includes('application/json')
@@ -80,9 +89,7 @@ export async function apiFetch<T = unknown>(
       } else {
         // Non-JSON error (HTML error page, proxy error, etc.)
         const text = await response.text()
-        if (import.meta.env.DEV) {
-          console.error('Non-JSON error response:', text.substring(0, 200))
-        }
+        console.error(`[API Error] Non-JSON response for ${endpoint}:`, text.substring(0, 200))
         throw new ApiClientError(
           `Server error (${response.status}). Please try again later.`,
           {
@@ -97,8 +104,10 @@ export async function apiFetch<T = unknown>(
     if (isJson) {
       return await response.json()
     } else {
-      // Success but not JSON (shouldn't happen for our API)
-      return await response.text() as T
+      // Success but not JSON - log warning
+      const text = await response.text()
+      console.warn(`[API Warning] Non-JSON success response for ${endpoint}:`, text.substring(0, 100))
+      return text as T
     }
   } catch (error) {
     // Handle network errors or parsing errors
