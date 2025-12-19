@@ -400,5 +400,250 @@ router.delete('/avatar', verifyToken, async (req, res) => {
   }
 });
 
+// Request password reset endpoint
+router.post('/forgot-password', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  
+  try {
+    const { email } = req.body;
+    if (!email || !email.trim()) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email is required',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    // Check if user exists
+    const result = await query('SELECT id, email FROM users WHERE email=$1', [email.toLowerCase()]);
+    if (result.rowCount === 0) {
+      // Return success even if email doesn't exist (security best practice)
+      return res.json({ 
+        success: true, 
+        message: 'If an account exists with this email, a password reset link has been sent.',
+        code: 'RESET_EMAIL_SENT'
+      });
+    }
+
+    const user = result.rows[0];
+    
+    // Generate reset token (valid for 1 hour)
+    const resetToken = jwt.sign({ id: user.id, email: user.email, type: 'reset' }, JWT_SECRET, { expiresIn: '1h' });
+    
+    // Save reset token to database (hashed for security)
+    const hashedToken = await bcrypt.hash(resetToken, 10);
+    const tokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+    
+    await query(
+      'UPDATE users SET reset_token=$1, reset_token_expiry=$2 WHERE id=$3',
+      [hashedToken, tokenExpiry, user.id]
+    );
+
+    // TODO: Send email with reset link (frontend will use the reset token)
+    // For now, return the token (in production, send via email only)
+    console.log(`Password reset token generated for ${email}`);
+    
+    return res.json({ 
+      success: true, 
+      message: 'If an account exists with this email, a password reset link has been sent.',
+      code: 'RESET_EMAIL_SENT',
+      // In production, don't return the token - send it via email instead
+      // token: resetToken  // REMOVE in production
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Error processing password reset request',
+      code: 'SERVER_ERROR'
+    });
+  }
+});
+
+// Verify reset token endpoint
+router.post('/verify-reset-token', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Reset token is required',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    // Verify JWT token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (e) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid or expired reset token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    if (decoded.type !== 'reset') {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid reset token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    // Check if token exists in DB and hasn't expired
+    const result = await query(
+      'SELECT id, email, reset_token, reset_token_expiry FROM users WHERE id=$1',
+      [decoded.id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    const user = result.rows[0];
+    
+    // Verify token expiry
+    if (!user.reset_token_expiry || new Date() > new Date(user.reset_token_expiry)) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Reset token has expired',
+        code: 'TOKEN_EXPIRED'
+      });
+    }
+
+    // Verify hashed token matches
+    const tokenValid = await bcrypt.compare(token, user.reset_token);
+    if (!tokenValid) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid reset token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    return res.json({ 
+      success: true, 
+      message: 'Reset token is valid',
+      code: 'TOKEN_VALID',
+      email: user.email
+    });
+  } catch (error) {
+    console.error('Verify reset token error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Error verifying reset token',
+      code: 'SERVER_ERROR'
+    });
+  }
+});
+
+// Reset password endpoint
+router.post('/reset-password', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  
+  try {
+    const { token, newPassword } = req.body;
+    
+    if (!token || !newPassword) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Token and new password are required',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Password must be at least 6 characters long',
+        code: 'PASSWORD_TOO_SHORT'
+      });
+    }
+
+    // Verify JWT token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (e) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid or expired reset token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    if (decoded.type !== 'reset') {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid reset token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    // Check if token exists in DB and hasn't expired
+    const result = await query(
+      'SELECT id, reset_token, reset_token_expiry FROM users WHERE id=$1',
+      [decoded.id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    const user = result.rows[0];
+    
+    // Verify token expiry
+    if (!user.reset_token_expiry || new Date() > new Date(user.reset_token_expiry)) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Reset token has expired',
+        code: 'TOKEN_EXPIRED'
+      });
+    }
+
+    // Verify hashed token matches
+    const tokenValid = await bcrypt.compare(token, user.reset_token);
+    if (!tokenValid) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid reset token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    // Hash new password and update
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    await query(
+      'UPDATE users SET password_hash=$1, reset_token=NULL, reset_token_expiry=NULL, updated_at=CURRENT_TIMESTAMP WHERE id=$2',
+      [passwordHash, decoded.id]
+    );
+
+    return res.json({ 
+      success: true, 
+      message: 'Password reset successful. You can now login with your new password.',
+      code: 'PASSWORD_RESET_SUCCESS'
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Error resetting password',
+      code: 'SERVER_ERROR'
+    });
+  }
+});
+
 
 module.exports = router;
