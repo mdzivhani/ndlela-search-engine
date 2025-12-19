@@ -89,7 +89,9 @@ export async function apiFetch<T = unknown>(
       } else {
         // Non-JSON error (HTML error page, proxy error, etc.)
         const text = await response.text()
-        console.error(`[API Error] Non-JSON response for ${endpoint}:`, text.substring(0, 200))
+        if (import.meta.env.DEV) {
+          console.error(`[API Error] Non-JSON response for ${endpoint}:`, text.substring(0, 200))
+        }
         throw new ApiClientError(
           `Server error (${response.status}). Please try again later.`,
           {
@@ -104,9 +106,11 @@ export async function apiFetch<T = unknown>(
     if (isJson) {
       return await response.json()
     } else {
-      // Success but not JSON - log warning
+      // Success but not JSON - log warning (only in development)
       const text = await response.text()
-      console.warn(`[API Warning] Non-JSON success response for ${endpoint}:`, text.substring(0, 100))
+      if (import.meta.env.DEV) {
+        console.warn(`[API Warning] Non-JSON success response for ${endpoint}:`, text.substring(0, 100))
+      }
       return text as T
     }
   } catch (error) {
