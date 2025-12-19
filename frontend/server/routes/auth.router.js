@@ -430,25 +430,23 @@ router.post('/forgot-password', async (req, res) => {
     // Generate reset token (valid for 1 hour)
     const resetToken = jwt.sign({ id: user.id, email: user.email, type: 'reset' }, JWT_SECRET, { expiresIn: '1h' });
     
-    // Save reset token to database (hashed for security)
-    const hashedToken = await bcrypt.hash(resetToken, 10);
+    // Store reset token as-is (plain JWT string) in database
+    // No bcrypt hashing - we verify JWT signature instead
     const tokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
     
     await query(
       'UPDATE users SET reset_token=$1, reset_token_expiry=$2 WHERE id=$3',
-      [hashedToken, tokenExpiry, user.id]
+      [resetToken, tokenExpiry, user.id]
     );
 
-    // TODO: Send email with reset link (frontend will use the reset token)
-    // For now, return the token (in production, send via email only)
     console.log(`Password reset token generated for ${email}`);
     
+    // TODO: In production, remove token from response and send via email only
     return res.json({ 
       success: true, 
       message: 'If an account exists with this email, a password reset link has been sent.',
       code: 'RESET_EMAIL_SENT',
-      // In production, don't return the token - send it via email instead
-      // token: resetToken  // REMOVE in production
+      token: resetToken  // TEMPORARY: Return token since email is stubbed. Remove in production.
     });
   } catch (error) {
     console.error('Forgot password error:', error);
@@ -466,7 +464,9 @@ router.post('/verify-reset-token', async (req, res) => {
   
   try {
     const { token } = req.body;
-    if (!token) {
+    
+    // A2: Validate token is not empty or whitespace
+    if (typeof token !== 'string' || token.trim().length === 0) {
       return res.status(400).json({ 
         success: false, 
         message: 'Reset token is required',
@@ -474,7 +474,7 @@ router.post('/verify-reset-token', async (req, res) => {
       });
     }
 
-    // Verify JWT token
+    // Verify JWT token signature
     let decoded;
     try {
       decoded = jwt.verify(token, JWT_SECRET);
@@ -519,9 +519,8 @@ router.post('/verify-reset-token', async (req, res) => {
       });
     }
 
-    // Verify hashed token matches
-    const tokenValid = await bcrypt.compare(token, user.reset_token);
-    if (!tokenValid) {
+    // A4: Compare plain token strings (no bcrypt)
+    if (user.reset_token !== token) {
       return res.status(401).json({ 
         success: false, 
         message: 'Invalid reset token',
@@ -552,23 +551,42 @@ router.post('/reset-password', async (req, res) => {
   try {
     const { token, newPassword } = req.body;
     
-    if (!token || !newPassword) {
+    // A2: Validate token is not empty or whitespace
+    if (typeof token !== 'string' || token.trim().length === 0) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Token and new password are required',
+        message: 'Reset token is required',
         code: 'VALIDATION_ERROR'
       });
     }
 
-    if (newPassword.length < 6) {
+    // A3: Validate new password matches registration policy
+    if (!newPassword) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Password must be at least 6 characters long',
-        code: 'PASSWORD_TOO_SHORT'
+        message: 'New password is required',
+        code: 'VALIDATION_ERROR'
       });
     }
 
-    // Verify JWT token
+    if (newPassword.length < 8) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Password must be at least 8 characters long and include a number or special character',
+        code: 'PASSWORD_TOO_WEAK'
+      });
+    }
+
+    const hasNumberOrSpecial = /[\d!@#$%^&*(),.?":{}|<>]/.test(newPassword);
+    if (!hasNumberOrSpecial) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Password must be at least 8 characters long and include a number or special character',
+        code: 'PASSWORD_TOO_WEAK'
+      });
+    }
+
+    // Verify JWT token signature
     let decoded;
     try {
       decoded = jwt.verify(token, JWT_SECRET);
@@ -588,47 +606,30 @@ router.post('/reset-password', async (req, res) => {
       });
     }
 
-    // Check if token exists in DB and hasn't expired
-    const result = await query(
-      'SELECT id, reset_token, reset_token_expiry FROM users WHERE id=$1',
-      [decoded.id]
+    // A5: Use guarded update to prevent reuse and race conditions
+    // Hash new password
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    
+    // Update password only if token matches, not expired, and not null (single-use)
+    const updateResult = await query(
+      `UPDATE users 
+       SET password_hash=$1, reset_token=NULL, reset_token_expiry=NULL, updated_at=CURRENT_TIMESTAMP 
+       WHERE id=$2 
+         AND reset_token=$3 
+         AND reset_token_expiry > CURRENT_TIMESTAMP 
+         AND reset_token IS NOT NULL
+       RETURNING id`,
+      [passwordHash, decoded.id, token]
     );
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'User not found',
-        code: 'USER_NOT_FOUND'
-      });
-    }
-
-    const user = result.rows[0];
-    
-    // Verify token expiry
-    if (!user.reset_token_expiry || new Date() > new Date(user.reset_token_expiry)) {
+    // If no rows were updated, token was invalid, expired, or already used
+    if (updateResult.rowCount === 0) {
       return res.status(401).json({ 
         success: false, 
-        message: 'Reset token has expired',
-        code: 'TOKEN_EXPIRED'
-      });
-    }
-
-    // Verify hashed token matches
-    const tokenValid = await bcrypt.compare(token, user.reset_token);
-    if (!tokenValid) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Invalid reset token',
+        message: 'Invalid or already used reset token',
         code: 'INVALID_TOKEN'
       });
     }
-
-    // Hash new password and update
-    const passwordHash = await bcrypt.hash(newPassword, 10);
-    await query(
-      'UPDATE users SET password_hash=$1, reset_token=NULL, reset_token_expiry=NULL, updated_at=CURRENT_TIMESTAMP WHERE id=$2',
-      [passwordHash, decoded.id]
-    );
 
     return res.json({ 
       success: true, 

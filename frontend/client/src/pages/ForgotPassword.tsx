@@ -13,19 +13,38 @@ export default function ForgotPassword() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
+  // B: Password policy validation helper (matches backend)
+  const validatePassword = (password: string): { valid: boolean; error?: string } => {
+    if (!password) {
+      return { valid: false, error: 'Password is required' }
+    }
+    if (password.length < 8) {
+      return { valid: false, error: 'Password must be at least 8 characters long' }
+    }
+    const hasNumberOrSpecial = /[\d!@#$%^&*(),.?":{}|<>]/.test(password)
+    if (!hasNumberOrSpecial) {
+      return { valid: false, error: 'Password must include a number or special character' }
+    }
+    return { valid: true }
+  }
+
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
     try {
-      const response = await apiFetch<{ success: boolean; message: string }>('/auth/forgot-password', {
+      const response = await apiFetch<{ success: boolean; message: string; token?: string }>('/auth/forgot-password', {
         method: 'POST',
         body: JSON.stringify({ email: email.trim() })
       })
 
       if (response.success) {
-        setSuccess('Password reset email sent! Check your inbox for the reset link.')
+        // A1: Store token returned from API
+        if (response.token) {
+          setResetToken(response.token)
+        }
+        setSuccess('Password reset token ready. Continue to reset your password.')
         setStep('reset')
         setEmail('')
       }
@@ -41,13 +60,25 @@ export default function ForgotPassword() {
     setError('')
     setSuccess('')
 
+    // B: Client-side validation before API call
+    if (!resetToken.trim()) {
+      setError('Reset token is required')
+      return
+    }
+
+    if (!newPassword) {
+      setError('New password is required')
+      return
+    }
+
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match')
       return
     }
 
-    if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters long')
+    const passwordValidation = validatePassword(newPassword)
+    if (!passwordValidation.valid) {
+      setError(passwordValidation.error || 'Password validation failed')
       return
     }
 
@@ -149,7 +180,7 @@ export default function ForgotPassword() {
               <textarea
                 value={resetToken}
                 onChange={(e) => setResetToken(e.target.value)}
-                placeholder="Paste the reset token from your email here"
+                placeholder="Reset token (should be pre-filled)"
                 required
                 style={{
                   width: '100%',
@@ -159,11 +190,11 @@ export default function ForgotPassword() {
                   fontSize: '0.9rem',
                   fontFamily: 'monospace',
                   boxSizing: 'border-box',
-                  minHeight: '100px',
+                  minHeight: '80px',
                   resize: 'vertical'
                 }}
               />
-              <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem' }}>Copy the reset token from the password reset email</p>
+              <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem' }}>Token should be automatically filled from the password reset link</p>
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
@@ -172,7 +203,7 @@ export default function ForgotPassword() {
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="At least 6 characters"
+                placeholder="At least 8 characters with a number or special character"
                 required
                 style={{
                   width: '100%',
@@ -183,6 +214,7 @@ export default function ForgotPassword() {
                   boxSizing: 'border-box'
                 }}
               />
+              <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem' }}>Minimum 8 characters with a number or special character (!@#$%^&*)</p>
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>

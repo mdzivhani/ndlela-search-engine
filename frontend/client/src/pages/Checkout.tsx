@@ -4,6 +4,16 @@ import { useCart } from '../contexts/CartContext'
 export default function Checkout() {
   const { items, getTotalPrice } = useCart()
   const [isProcessing, setIsProcessing] = useState(false)
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024)
+
+  React.useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  const isMobile = windowWidth < 768
+  const gridCols = isMobile ? '1fr' : '1fr 350px'
 
   const handleConfirmPurchase = async () => {
     setIsProcessing(true)
@@ -33,7 +43,8 @@ export default function Checkout() {
           <p style={{ color: '#666', fontSize: '1.1rem', marginTop: '0.5rem' }}>Complete your purchase and secure your booking</p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '2rem', alignItems: 'start' }}>
+        {/* C: Responsive grid - single column on mobile, two columns on desktop */}
+        <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: isMobile ? '1rem' : '2rem', alignItems: isMobile ? 'auto' : 'start' }}>
           {/* Main Content */}
           <div>
             {/* Order Items Section */}
@@ -70,41 +81,26 @@ export default function Checkout() {
               </div>
             </section>
 
-            {/* Billing & Payment Info */}
+            {/* D: Demo Checkout Note - replaced decorative billing form */}
             <section style={{ background: '#fff', borderRadius: '12px', padding: '2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '1.5rem', color: '#111', borderBottom: '2px solid var(--primary-color)', paddingBottom: '1rem' }}>Billing Details</h2>
+              <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '1.5rem', color: '#111', borderBottom: '2px solid var(--primary-color)', paddingBottom: '1rem' }}>Demo Checkout</h2>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem', fontSize: '0.95rem', color: '#333' }}>Full Name</label>
-                  <input type="text" placeholder="John Doe" style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #ddd', fontSize: '1rem', boxSizing: 'border-box' }} />
+              <div style={{ padding: '1.5rem', backgroundColor: '#e8f5e9', borderRadius: '8px', borderLeft: '4px solid #4caf50' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
+                  <div style={{ fontSize: '1.5rem' }}>ℹ️</div>
+                  <div>
+                    <p style={{ margin: '0 0 0.5rem 0', fontWeight: 600, color: '#2e7d32' }}>This is a demo checkout</p>
+                    <p style={{ margin: '0', color: '#558b2f', fontSize: '0.95rem' }}>
+                      No billing details are collected or processed in this demonstration environment. In a production system, this section would display billing forms, shipping options, and secure payment processing.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem', fontSize: '0.95rem', color: '#333' }}>Email</label>
-                  <input type="email" placeholder="john@example.com" style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #ddd', fontSize: '1rem', boxSizing: 'border-box' }} />
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem', fontSize: '0.95rem', color: '#333' }}>Phone Number</label>
-                <input type="tel" placeholder="+27 123 456 7890" style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #ddd', fontSize: '1rem', boxSizing: 'border-box' }} />
-              </div>
-
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', fontWeight: 600, marginBottom: '0.5rem', fontSize: '0.95rem', color: '#333' }}>Address</label>
-                <input type="text" placeholder="123 Main Street" style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #ddd', fontSize: '1rem', boxSizing: 'border-box', marginBottom: '0.5rem' }} />
-                <input type="text" placeholder="City" style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #ddd', fontSize: '1rem', boxSizing: 'border-box', marginBottom: '0.5rem' }} />
-                <input type="text" placeholder="Postal Code" style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #ddd', fontSize: '1rem', boxSizing: 'border-box' }} />
-              </div>
-
-              <div style={{ padding: '1rem', backgroundColor: '#e3f2fd', borderRadius: '8px', borderLeft: '4px solid var(--primary-color)' }}>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#1565c0' }}>💳 Payment processing is a stub. This is a demo checkout.</p>
               </div>
             </section>
           </div>
 
-          {/* Sidebar - Order Summary */}
-          <aside style={{ position: 'sticky', top: '1rem' }}>
+          {/* C: Sidebar - Order Summary (sticky on desktop only) */}
+          <aside style={{ position: isMobile ? 'relative' : 'sticky', top: '1rem' }}>
             <div style={{ background: '#fff', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', border: '2px solid var(--primary-color)' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1.5rem', color: '#111' }}>Order Summary</h3>
 
