@@ -34,7 +34,9 @@ location ^~ /api/ {
 ### Reference Configuration
 
 See the complete working configuration in the root of this repository:
-- Check current active config: `sudo cat /etc/nginx/sites-enabled/ndlelasearchengine.co.za.conf`
+- To view the current active Nginx configuration, run:
+  ```bash
+  sudo cat /etc/nginx/sites-enabled/ndlelasearchengine.co.za.conf
 - Nginx logs: `/home/mulalo/logs/ndlelaSearchEngineLogs/`
   - `access.log` - Request logs
   - `error.log` - Error logs
