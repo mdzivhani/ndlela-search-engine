@@ -14,6 +14,5 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     // Redirect to login while saving the location they were trying to access
     return <Navigate to="/login" state={{ from: location }} replace />
   }
-
   return <>{children}</>
 }
