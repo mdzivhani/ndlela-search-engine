@@ -27,42 +27,45 @@ export default function GlobalHeader() {
   const isActive = (path: string) => location.pathname === path
 
   return (
-    <header className="global-header" style={{ borderBottom: '1px solid var(--gray-200)', background:'#fff' }}>
-      <div style={{ padding: '0.5rem 1rem', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <div className="header-left" style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
-          <Link to="/" style={{ textDecoration:'none', color:'var(--primary-color)', fontWeight:600, fontSize:'1.1rem' }}>Ndlela</Link>
+    <header className="global-header" style={{ borderBottom: '1px solid var(--gray-200)', background: '#fff' }}>
+      <div style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <Link to="/" style={{ textDecoration: 'none', color: 'var(--primary-color)', fontWeight: 600, fontSize: '1.1rem' }}>Ndlela</Link>
         </div>
-        <div className="header-right" style={{ display:'flex', alignItems:'center', gap:'0.75rem' }}>
+        <div className="header-right" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           {/* Cart Icon with badge */}
           <button
             aria-label="Cart"
             className="icon-button"
             onClick={() => {
-              // Scroll to cart widget if present
               const el = document.querySelector('.cart-widget') as HTMLElement | null
-              if (el) el.scrollIntoView({ behavior:'smooth', block:'start' })
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
               else navigate('/search')
             }}
-            style={{ position:'relative' }}
+            style={{ position: 'relative' }}
           >
             🛒
-            <span className="badge" aria-label={`Cart items ${getTotalItems()}`} style={{ position:'absolute', top:-6, right:-8 }}>
+            <span className="badge" aria-label={`Cart items ${getTotalItems()}`} style={{ position: 'absolute', top: -6, right: -8 }}>
               {getTotalItems()}
             </span>
           </button>
 
           {/* Avatar with menu */}
-          <div ref={menuRef} style={{ position:'relative' }}>
+          <div ref={menuRef} style={{ position: 'relative' }}>
             <button
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               className="icon-button"
-              onClick={() => setMenuOpen(v => !v)}
+              onClick={() => setMenuOpen((v) => !v)}
             >
               <ProfileAvatar size="small" />
             </button>
             {menuOpen && (
-              <div role="menu" className="dropdown-menu" style={{ position:'absolute', right:0, top:'110%', background:'#fff', border:'1px solid var(--gray-200)', borderRadius:8, boxShadow:'0 6px 24px rgba(0,0,0,0.08)', minWidth:180, zIndex:10 }}>
+              <div
+                role="menu"
+                className="dropdown-menu"
+                style={{ position: 'absolute', right: 0, top: '110%', background: '#fff', border: '1px solid var(--gray-200)', borderRadius: 8, boxShadow: '0 6px 24px rgba(0,0,0,0.08)', minWidth: 180, zIndex: 10 }}
+              >
                 {!user ? (
                   <>
                     <button role="menuitem" className="dropdown-item" onClick={() => { navigate('/login'); setMenuOpen(false) }}>Login / Register</button>
@@ -78,7 +81,7 @@ export default function GlobalHeader() {
           </div>
         </div>
       </div>
-      
+
       {/* Navigation Tabs */}
       <nav className="nav-tabs" style={{ display: 'flex', borderTop: '1px solid var(--gray-200)', padding: '0 1rem' }}>
         <button
@@ -104,9 +107,7 @@ export default function GlobalHeader() {
         >
           <span className="nav-tab-icon">❤️</span>
           <span className="nav-tab-label">Favourites</span>
-          {count > 0 && (
-            <span className="nav-tab-badge">{count}</span>
-          )}
+          {count > 0 && <span className="nav-tab-badge">{count}</span>}
         </button>
       </nav>
     </header>

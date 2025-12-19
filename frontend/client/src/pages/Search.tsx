@@ -28,6 +28,7 @@ export default function Search() {
   const [highlightedId, setHighlightedId] = useState<string | null>(null)
   const [mapCenter, setMapCenter] = useState<[number, number] | undefined>()
   const [mapZoom, setMapZoom] = useState<number>(10)
+  const [autoSearchEnabled, setAutoSearchEnabled] = useState<boolean>(false)
   
   // Search filters state
   const [filters, setFilters] = useState<Partial<SearchRequest>>({
@@ -88,6 +89,7 @@ export default function Search() {
 
       // Only auto-search if user explicitly requested it via URL params
       if (hasQuery) {
+        setAutoSearchEnabled(true)
         const initialSearch: SearchRequest = {
           q: params.get('q') || undefined,
           category: params.get('category') || undefined,
@@ -106,24 +108,26 @@ export default function Search() {
     // Debounced search will be triggered by useEffect below
   }, [])
 
-  // Debounced search on filter changes
+  // Debounced search on filter changes (only after explicit search)
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (Object.keys(filters).length > 1) { // More than just sortBy
+      if (autoSearchEnabled && Object.keys(filters).length > 1) {
         handleSearch(filters)
       }
     }, 500)
 
     return () => clearTimeout(timeoutId)
-  }, [filters])
+  }, [filters, autoSearchEnabled])
 
   const handleMapBoundsChange = useCallback((bounds: MapBounds) => {
+    setAutoSearchEnabled(true)
     handleSearch({ bounds })
   }, [handleSearch])
 
   const handleRegionClick = (region: string, lat: number, lng: number) => {
     setMapCenter([lat, lng])
     setMapZoom(10)
+    setAutoSearchEnabled(true)
     handleSearch({ lat, lng, radiusKm: 30 })
   }
 
@@ -178,10 +182,10 @@ export default function Search() {
         {/* Show empty state when no search has been performed */}
         {!results && !isLoading && !error && (
           <div>
-            <SavedSearches onSelectSearch={(search) => handleSearch(search)} />
+            <SavedSearches onSelectSearch={(search) => { setAutoSearchEnabled(true); handleSearch(search) }} />
             <EmptySearchState
               hasUserLocation={!!userLocation}
-              onQuickSearch={(query) => handleSearch({ q: query })}
+              onQuickSearch={(query) => { setAutoSearchEnabled(true); handleSearch({ q: query }) }}
               onUseMyLocation={requestLocation}
             />
           </div>
@@ -190,9 +194,7 @@ export default function Search() {
         {/* Show recommendations when results are empty but search was performed */}
         {results && results.results.length === 0 && !error && (
           <div>
-            <div className="error-message">
-              No results found for "{results.query}". Try adjusting your filters or search area.
-            </div>
+            <div className="error-message">No results found.</div>
             <RecommendationsSections
               forYou={[]}
               topPicks={[]}
@@ -226,9 +228,7 @@ export default function Search() {
               {/* Results List */}
               <div className="results-list-container">
                 {results.results.length === 0 ? (
-                  <div className="no-results">
-                    <p>No results found. Try adjusting your filters or search area.</p>
-                  </div>
+                  <div className="no-results" />
                 ) : (
                   <div className="results-list-modern">
                     {results.results.map((result) => (
