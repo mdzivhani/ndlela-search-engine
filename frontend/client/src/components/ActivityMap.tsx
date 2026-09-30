@@ -7,10 +7,14 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 're
 import type { Map as LeafletMap } from 'leaflet'
 import { SearchResult, MapBounds, UserLocation } from '../types/search'
 import 'leaflet/dist/leaflet.css'
+import L from 'leaflet'
+import markerUrl from 'leaflet/dist/images/marker-icon.png'
+import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+const markerIcon = L.icon({ iconUrl: markerUrl, shadowUrl: markerShadow, iconSize: [25,41], iconAnchor: [12,41] })
 
 interface ActivityMapProps {
   activities: SearchResult[]
-  userLocation: UserLocation | null
+  userLocation?: UserLocation | null
   highlightedId?: string | null
   onMarkerClick?: (id: string) => void
   onMarkerHover?: (id: string | null) => void
@@ -143,7 +147,6 @@ export default function ActivityMap({
         />
 
         <MapUpdater center={center} zoom={zoom} />
-        <MapEventHandler onBoundsChange={onBoundsChange} />
         <SearchThisAreaButton onClick={handleSearchThisArea} />
 
         {/* User location marker */}
@@ -166,6 +169,9 @@ export default function ActivityMap({
         {validActivities.map((activity) => (
           <Marker
             key={activity.id}
+            icon={markerIcon}
+            opacity={highlightedId && highlightedId !== activity.id ? 0.55 : 1}
+            zIndexOffset={highlightedId === activity.id ? 1000 : 0}
             position={[activity.latitude!, activity.longitude!]}
             eventHandlers={{
               click: () => onMarkerClick?.(activity.id),

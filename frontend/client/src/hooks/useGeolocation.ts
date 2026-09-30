@@ -12,6 +12,7 @@ const DEFAULT_SA_LOCATION: UserLocation = {
 }
 
 interface GeolocationState {
+  requestLocation?: () => void
   location: UserLocation | null
   isLoading: boolean
   error: string | null
@@ -19,6 +20,7 @@ interface GeolocationState {
 }
 
 export function useGeolocation() {
+  const [request, setRequest] = useState(0)
   const [state, setState] = useState<GeolocationState>({
     location: null,
     isLoading: true,
@@ -82,7 +84,7 @@ export function useGeolocation() {
       timeout: 10000,
       maximumAge: 300000, // 5 minutes
     })
-  }, [])
+  }, [request])
 
-  return state
+  return { ...state, requestLocation: () => setRequest(value => value + 1) } as GeolocationState
 }

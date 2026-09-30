@@ -52,7 +52,7 @@ export default function Profile() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    
+
     // Handle first name and last name separately, combine into name field
     if (name === 'firstName') {
       setFirstName(value)
@@ -119,7 +119,7 @@ export default function Profile() {
     const nameParts = user?.name?.split(' ') || []
     const resetFirstName = nameParts[0] || ''
     const resetLastName = nameParts.slice(1).join(' ') || ''
-    
+
     setFirstName(resetFirstName)
     setLastName(resetLastName)
     setFormData({
@@ -186,7 +186,9 @@ export default function Profile() {
         newPassword: '',
         confirmPassword: ''
       })
-      setIsChangingPassword(false)
+        setIsChangingPassword(false)
+        logout()
+        navigate('/login', { replace: true })
     } catch (err) {
       setPasswordError(err instanceof Error ? err.message : 'Failed to change password')
     } finally {

@@ -86,19 +86,19 @@ describe('Password Confirmation', () => {
   it('should match identical passwords', () => {
     const password = 'TestPassword123'
     const confirmPassword = 'TestPassword123'
-    expect(password === confirmPassword).toBe(true)
+    expect(String(password) === String(confirmPassword)).toBe(true)
   })
 
   it('should not match different passwords', () => {
     const password = 'TestPassword123'
     const confirmPassword = 'TestPassword124'
-    expect(password === confirmPassword).toBe(false)
+    expect(String(password) === String(confirmPassword)).toBe(false)
   })
 
   it('should not match empty confirm password', () => {
     const password = 'TestPassword123'
     const confirmPassword = ''
-    expect(password === confirmPassword).toBe(false)
+    expect(String(password) === String(confirmPassword)).toBe(false)
   })
 })
 
@@ -113,7 +113,7 @@ describe('Form Validation', () => {
       name.trim().length > 0 &&
       email.includes('@') &&
       password.length >= 8 &&
-      confirmPassword === password
+      String(confirmPassword) === String(password)
 
     expect(isValid).toBe(true)
   })
@@ -128,7 +128,7 @@ describe('Form Validation', () => {
       name.trim().length > 0 &&
       email.includes('@') &&
       password.length >= 8 &&
-      confirmPassword === password
+      String(confirmPassword) === String(password)
 
     expect(isValid).toBe(false)
   })
@@ -143,7 +143,7 @@ describe('Form Validation', () => {
       name.trim().length > 0 &&
       email.includes('@') &&
       password.length >= 8 &&
-      confirmPassword === password
+      String(confirmPassword) === String(password)
 
     expect(isValid).toBe(false)
   })
@@ -158,7 +158,7 @@ describe('Form Validation', () => {
       name.trim().length > 0 &&
       email.includes('@') &&
       password.length >= 8 &&
-      confirmPassword === password
+      String(confirmPassword) === String(password)
 
     expect(isValid).toBe(false)
   })

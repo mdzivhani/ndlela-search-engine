@@ -53,6 +53,11 @@ export default function AttractionCards({ attractions, provinceName }: Attractio
             <div className="attraction-content">
               <h3 className="attraction-name">{attraction.name}</h3>
               <p className="attraction-description">{attraction.shortDescription}</p>
+              {attraction.photoCredit && attraction.photoCreditUrl && (
+                <small>
+                  Photo: <a href={attraction.photoCreditUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>{attraction.photoCredit}</a>
+                </small>
+              )}
               <button className="attraction-btn">View Details</button>
             </div>
           </div>

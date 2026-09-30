@@ -8,6 +8,7 @@ export interface SearchResult {
   longitude?: number
   priceFrom?: number
   priceTo?: number
+  priceUrl?: string
   facilities?: string[]
   imageUrl?: string
   thumbnailUrl?: string

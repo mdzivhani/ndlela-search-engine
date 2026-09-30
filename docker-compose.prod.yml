@@ -87,6 +87,20 @@ services:
       - JWT_SECRET=${JWT_SECRET_KEY}
       - JWT_EXPIRATION=7d
       - LOG_DIR=/var/log/ndlela
+      - APP_URL=${APP_URL}
+      - PUBLIC_API_URL=${PUBLIC_API_URL}
+      - PAYFAST_MODE=${PAYFAST_MODE:-sandbox}
+      - PAYFAST_MERCHANT_ID=${PAYFAST_MERCHANT_ID}
+      - PAYFAST_MERCHANT_KEY=${PAYFAST_MERCHANT_KEY}
+      - PAYFAST_PASSPHRASE=${PAYFAST_PASSPHRASE}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_SECURE=${SMTP_SECURE:-false}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - SMTP_FROM=${SMTP_FROM}
+      - ADMIN_EMAILS=${ADMIN_EMAILS}
+      - TRUSTED_PROXY=${TRUSTED_PROXY}
     depends_on:
       - business-api
       - auth-api

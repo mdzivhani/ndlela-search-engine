@@ -8,18 +8,18 @@ export default function Auth() {
   const navigate = useNavigate()
   const location = useLocation()
   const { login, register, isLoading } = useAuth()
-  const [mode, setMode] = useState<AuthMode>('login')
-  
+  const [mode, setMode] = useState<AuthMode>(location.pathname === '/register' ? 'register' : 'login')
+
   // Login form state
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
-  
+
   // Register form state
   const [registerName, setRegisterName] = useState('')
   const [registerEmail, setRegisterEmail] = useState('')
   const [registerPassword, setRegisterPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  
+
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 

@@ -26,16 +26,20 @@ export function mapAuthError(err: unknown): AuthErrorMapping {
 
   switch (code) {
     case 'AUTH_USER_NOT_FOUND':
+    case 'EMAIL_NOT_REGISTERED':
       assignField('email', 'This email is not registered. Please create an account.')
       break
     case 'AUTH_INVALID_CREDENTIALS':
+    case 'WRONG_PASSWORD':
       assignField('password', 'Incorrect password. Please try again.')
       break
     case 'AUTH_EMAIL_ALREADY_EXISTS':
+    case 'EMAIL_EXISTS':
       assignField('email', 'This email is already registered. Please log in instead.')
       break
     case 'AUTH_PASSWORD_WEAK':
-      assignField('password', message || 'Password does not meet requirements.')
+    case 'WEAK_PASSWORD':
+      assignField('password', 'Password must be at least 8 characters and include a number or special character.')
       break
     case 'AUTH_PASSWORD_MISMATCH':
       assignField('confirmPassword', 'Passwords do not match')

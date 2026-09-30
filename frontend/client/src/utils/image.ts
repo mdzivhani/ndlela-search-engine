@@ -5,7 +5,7 @@ export async function processAvatarImage(file: File): Promise<File> {
   if (!file.type.startsWith('image/')) return file
 
   // Read file as data URL
-  const dataUrl: string = await new Promise((resolve, reject) => {
+  const dataUrl: string = await new Promise<string>((resolve, reject) => {
     const reader = new FileReader()
     reader.onload = () => resolve(reader.result as string)
     reader.onerror = () => reject(new Error('Failed to read image'))
@@ -15,14 +15,14 @@ export async function processAvatarImage(file: File): Promise<File> {
   if (!dataUrl) return file
 
   // Create image element
-  const img: HTMLImageElement = await new Promise((resolve, reject) => {
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
     const image = new Image()
     image.onload = () => resolve(image)
     image.onerror = () => reject(new Error('Failed to load image'))
     image.src = dataUrl
     // Fallback: if load takes >2s, use original file
     setTimeout(() => reject(new Error('Image load timeout')), 2000)
-  }).catch(() => null as any)
+  }).catch(() => null)
 
   if (!img || !img.width || !img.height) return file
 

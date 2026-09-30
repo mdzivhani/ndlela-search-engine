@@ -4,9 +4,10 @@ import { apiFetch } from '../utils/apiClient'
 
 export default function ForgotPassword() {
   const navigate = useNavigate()
-  const [step, setStep] = useState<'email' | 'reset' | 'success'>('email')
+  const incomingToken = new URLSearchParams(window.location.search).get('token') || ''
+  const [step, setStep] = useState<'email' | 'reset' | 'success'>(incomingToken ? 'reset' : 'email')
   const [email, setEmail] = useState('')
-  const [resetToken, setResetToken] = useState('')
+  const [resetToken, setResetToken] = useState(incomingToken)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -44,8 +45,7 @@ export default function ForgotPassword() {
         if (response.token) {
           setResetToken(response.token)
         }
-        setSuccess('Password reset token ready. Continue to reset your password.')
-        setStep('reset')
+        setSuccess(response.message)
         setEmail('')
       }
     } catch (err) {

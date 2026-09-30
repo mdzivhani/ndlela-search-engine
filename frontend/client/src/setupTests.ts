@@ -8,10 +8,10 @@ global.URL.revokeObjectURL = vi.fn()
 
 // Mock FileReader for image processing tests
 global.FileReader = class MockFileReader {
-  onload: ((this: FileReader, ev: ProgressEvent<FileReader>) => any) | null = null
+  onload: ((ev: ProgressEvent<FileReader>) => any) | null = null
   onerror: ((this: FileReader, ev: ProgressEvent<FileReader>) => any) | null = null
   result: string | ArrayBuffer | null = null
-  
+
   readAsDataURL(_blob: Blob) {
     // Simulate async read
     setTimeout(() => {
@@ -25,12 +25,12 @@ global.FileReader = class MockFileReader {
 
 // Mock Image for image processing tests
 global.Image = class MockImage {
-  onload: ((this: GlobalEventHandlers, ev: Event) => any) | null = null
+  onload: ((ev: Event) => any) | null = null
   onerror: ((this: GlobalEventHandlers, ev: Event) => any) | null = null
   src: string = ''
   width: number = 100
   height: number = 100
-  
+
   constructor() {
     // Simulate async load
     setTimeout(() => {
@@ -115,4 +115,3 @@ vi.mock('leaflet', () => {
     icon: mockIcon,
   }
 })
-

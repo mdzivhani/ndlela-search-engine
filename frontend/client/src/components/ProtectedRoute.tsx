@@ -7,9 +7,10 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user } = useAuth()
+  const { user, isLoading } = useAuth()
   const location = useLocation()
 
+  if (isLoading) return <p role="status">Loading your account…</p>
   if (!user) {
     // Redirect to login while saving the location they were trying to access
     return <Navigate to="/login" state={{ from: location }} replace />
