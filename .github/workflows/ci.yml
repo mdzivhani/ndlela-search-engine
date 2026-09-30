@@ -21,7 +21,7 @@ permissions:
   issues: write
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   DOTNET_VERSION: '8.0.x'
 
 jobs:
@@ -73,7 +73,7 @@ jobs:
 
       - name: Install client dependencies
         working-directory: frontend/client
-        run: npm install --legacy-peer-deps
+        run: npm ci
 
       - name: Build frontend
         working-directory: frontend/client
@@ -81,7 +81,7 @@ jobs:
 
       - name: Run frontend tests
         working-directory: frontend/client
-        run: npm run test --silent || true
+        run: npm run test:run
 
       - name: Upload build artifacts
         if: success()

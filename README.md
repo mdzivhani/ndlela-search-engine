@@ -1,5 +1,7 @@
 # Ndlela Search Engine
 
+For the current implemented features, local startup, PayFast/SMTP configuration and release limitations, see [the platform release guide](docs/PLATFORM_RELEASE.md). The active web app runs on React, Express and PostgreSQL; the .NET services remain separate.
+
 A comprehensive South African national tourism platform featuring a modern React frontend, microservices-based .NET backend, and full-text search capabilities.
 
 ## 🎯 Project Overview
@@ -29,7 +31,7 @@ Infrastructure: CI/CD workflows, standards & contracts, Docker-based local envir
 
 ## 🚀 Quick Start
 
-Prerequisites: Node.js 20+, .NET 8 SDK, Docker (optional), Git.
+Prerequisites: Node.js 22.12+, .NET 8 SDK, Docker (optional), Git.
 
 Frontend:
 ```bash

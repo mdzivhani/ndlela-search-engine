@@ -30,7 +30,8 @@ export default function BusinessDetail() {
   const { addToCart, isInCart } = useCart();
   const { getTotalGuests } = useSearch();
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
-  
+  const [scrollZoom, setScrollZoom] = useState(false);
+
   const business = id ? extendedMockBusinesses[id] : null;
 
   // Initialize quantities based on search parameters
@@ -56,18 +57,17 @@ export default function BusinessDetail() {
     );
   }
 
-  const [scrollZoom, setScrollZoom] = useState(false);
   return (
     <div className="business-detail">
       {/* Header Section - Compact */}
-      <div className="detail-header-compact" style={{ 
+      <div className="detail-header-compact" style={{
         background: 'linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%)',
         color: 'white',
         padding: '14px 20px'
       }}>
         <div className="container">
-          <button 
-            onClick={() => navigate(-1)} 
+          <button
+            onClick={() => navigate(-1)}
             style={{
               background: 'rgba(255,255,255,0.2)',
               border: 'none',
@@ -84,13 +84,13 @@ export default function BusinessDetail() {
           <h1 style={{ margin: '4px 0 6px 0', fontSize: '1.75rem', lineHeight: '1.2', fontWeight: '700' }}>{business.name}</h1>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', fontSize: '0.9rem' }}>
             <span>⭐ {business.rating.toFixed(1)} ({business.reviewCount})</span>
-            <span style={{ 
+            <span style={{
               background: 'rgba(255,255,255,0.25)',
               padding: '2px 8px',
               borderRadius: '16px',
               fontSize: '0.8rem'
             }}>
-              {business.type}
+              {business.category}
             </span>
             <span style={{ opacity: 0.85 }}>📍 {business.location.city}</span>
           </div>
@@ -116,9 +116,9 @@ export default function BusinessDetail() {
                 {business.services.map((service) => {
                   const quantity = quantities[service.id] || 1;
                   const inCart = isInCart(service.id);
-                  
+
                   return (
-                    <div 
+                    <div
                       key={service.id}
                       className={`service-card-compact ${inCart ? 'in-cart' : ''}`}
                     >
@@ -135,23 +135,23 @@ export default function BusinessDetail() {
                           <span className="price-amount-compact">R{service.price.toLocaleString()}</span>
                         </div>
                       </div>
-                      
+
                       {/* Service Description */}
                       <p className="service-description-compact">
                         {service.description}
                       </p>
-                      
+
                       {/* Service Actions */}
                       <div className="service-actions-compact">
                         <div className="quantity-controls-compact">
-                          <button 
+                          <button
                             className="qty-btn-compact"
                             onClick={() => setQuantities(prev => ({ ...prev, [service.id]: Math.max(1, quantity - 1) }))}
                           >
                             −
                           </button>
                           <span className="qty-value-compact">{quantity}</span>
-                          <button 
+                          <button
                             className="qty-btn-compact"
                             onClick={() => setQuantities(prev => ({ ...prev, [service.id]: quantity + 1 }))}
                           >
@@ -186,13 +186,13 @@ export default function BusinessDetail() {
             {/* Amenities */}
             <section style={{ marginBottom: '28px' }}>
               <h2 style={{ marginBottom: '12px', fontSize: '1.1rem', fontWeight: '600' }}>Amenities & Features</h2>
-              <div style={{ 
-                display: 'grid', 
+              <div style={{
+                display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
                 gap: '8px'
               }}>
                 {business.amenities.map((amenity, index) => (
-                  <div 
+                  <div
                     key={index}
                     style={{
                       padding: '8px 12px',
@@ -214,13 +214,13 @@ export default function BusinessDetail() {
             {/* Operating Hours */}
             <section>
               <h2 style={{ marginBottom: '12px', fontSize: '1.1rem', fontWeight: '600' }}>Operating Hours</h2>
-              <div style={{ 
+              <div style={{
                 border: '1px solid var(--border-color)',
                 borderRadius: '6px',
                 overflow: 'hidden'
               }}>
                 {Object.entries(business.hours).map(([day, hours], idx) => (
-                  <div 
+                  <div
                     key={day}
                     style={{
                       display: 'flex',
@@ -244,9 +244,9 @@ export default function BusinessDetail() {
             <section style={{ marginBottom: '20px' }}>
               <h2 style={{ marginBottom: '10px', fontSize: '1.1rem', fontWeight: '600' }}>Location</h2>
               <Card style={{ overflow: 'hidden', padding: 0 }}>
-                <MapContainer 
-                  center={[business.location.coordinates.lat, business.location.coordinates.lng]} 
-                  zoom={13} 
+                <MapContainer
+                  center={[business.location.coordinates.lat, business.location.coordinates.lng]}
+                  zoom={13}
                   style={{ height: '220px', width: '100%' }}
                   scrollWheelZoom={scrollZoom}
                 >
@@ -271,7 +271,7 @@ export default function BusinessDetail() {
               <div style={{ padding: '10px 12px', background: 'var(--background-secondary)', borderRadius: '6px', marginTop: '8px', fontSize: '0.9rem' }}>
                 <p style={{ margin: '4px 0', fontWeight: '600' }}>{business.location.address}</p>
                 <p style={{ margin: '3px 0', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                  {business.location.city}, {business.location.province} {business.location.postalCode}
+                  {business.location.city}, {business.location.province}
                 </p>
               </div>
             </section>
@@ -279,7 +279,7 @@ export default function BusinessDetail() {
             {/* Contact Info */}
             <section style={{ marginBottom: '20px' }}>
               <h2 style={{ marginBottom: '10px', fontSize: '1.1rem', fontWeight: '600' }}>Contact</h2>
-              <div style={{ 
+              <div style={{
                 border: '1px solid var(--border-color)',
                 borderRadius: '6px',
                 padding: '12px',
@@ -297,9 +297,9 @@ export default function BusinessDetail() {
                 </div>
                 {business.contact.website && (
                   <div>
-                    <a 
-                      href={business.contact.website} 
-                      target="_blank" 
+                    <a
+                      href={business.contact.website}
+                      target="_blank"
                       rel="noopener noreferrer"
                       style={{ color: 'var(--primary-color)', textDecoration: 'none', fontWeight: '500' }}
                     >
@@ -311,7 +311,7 @@ export default function BusinessDetail() {
             </section>
 
             {/* CTA */}
-            <Button 
+            <Button
               style={{
                 width: '100%',
                 padding: '10px'
@@ -330,11 +330,11 @@ export default function BusinessDetail() {
         .detail-header-compact {
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
         }
-        
+
         .business-detail h2 { font-size: 1.1rem; line-height: 1.3; font-weight: 600; }
         .business-detail section { margin-bottom: 28px; }
         .business-detail section:last-of-type { margin-bottom: 0; }
-        
+
         /* Compact Services Grid */
         .services-modern-grid-compact {
           display: grid;

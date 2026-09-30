@@ -16,6 +16,16 @@ import BusinessDetail from './pages/BusinessDetail'
 import Checkout from './pages/Checkout'
 import ProtectedRoute from './components/ProtectedRoute'
 import './styles.css'
+import './discovery.css'
+import Home from './pages/Home'
+import Explore from './pages/Explore'
+import ListingDetail from './pages/ListingDetail'
+import Collections from './pages/Collections'
+import TripPlanner from './pages/TripPlanner'
+import Trips, { SharedTrip } from './pages/Trips'
+import OperatorHub from './pages/OperatorHub'
+import Enquiries from './pages/Enquiries'
+import Moderation from './pages/Moderation'
 
 const router = createBrowserRouter([
   {
@@ -32,10 +42,16 @@ const router = createBrowserRouter([
       </AuthProvider>
     ),
     children: [
-      { index: true, element: <Navigate to='/search' replace /> },
-      { path: 'search', element: <Search /> },
+      { index: true, element: <Home /> },
+      { path: 'search', element: <Explore /> },
       { path: 'browse', element: <Browse /> },
-      { path: 'favourites', element: <Favourites /> },
+      { path: 'favourites', element: <Collections /> },
+      { path: 'planner', element: <TripPlanner /> },
+      { path: 'trips', element: <ProtectedRoute><Trips /></ProtectedRoute> },
+      { path: 'shared/:token', element: <SharedTrip /> },
+      { path: 'operator', element: <ProtectedRoute><OperatorHub /></ProtectedRoute> },
+      { path: 'enquiries', element: <ProtectedRoute><Enquiries /></ProtectedRoute> },
+      { path: 'admin', element: <ProtectedRoute><Moderation /></ProtectedRoute> },
       { path: 'login', element: <Auth /> },
       { path: 'register', element: <Auth /> },
       { path: 'forgot-password', element: <ForgotPassword /> },
@@ -43,7 +59,7 @@ const router = createBrowserRouter([
         path: 'checkout',
         element: (
           <ProtectedRoute>
-            <Checkout />
+            <Enquiries />
           </ProtectedRoute>
         ),
       },
@@ -55,16 +71,13 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
-      { path: 'business/:id', element: <BusinessDetail /> },
+      { path: 'business/:id', element: <ListingDetail /> },
+      { path: '*', element: <div className="nd-section"><h1>This path ends here.</h1><a href="/">Back to discovery</a></div> },
     ],
   },
-], {
-  future: {
-    v7_startTransition: true,
-    v7_relativeSplatPath: true,
-  },
-})
+])
 
+document.documentElement.dataset.lowData = localStorage.getItem('ndlela_low_data') || 'false'
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <RouterProvider router={router} />

@@ -7,6 +7,17 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { query } = require('../db');
+const { randomUUID } = require('crypto');
+const authLimit=require('../rate-limit').rateLimit();
+router.use(['/login','/register','/forgot-password','/reset-password','/verify-reset-token'],authLimit);
+router.use((req,res,next)=>{
+  if(req.body.email!==undefined){
+    if(typeof req.body.email!=='string'||!/^\S+@\S+\.\S+$/.test(req.body.email.trim())||req.body.email.length>255)return res.status(400).json({message:'Enter a valid email address'});
+    req.body.email=req.body.email.trim().toLowerCase();
+  }
+  for(const field of ['password','newPassword','currentPassword'])if(req.body[field]!==undefined&&(typeof req.body[field]!=='string'||Buffer.byteLength(req.body[field],'utf8')>72))return res.status(400).json({message:'Passwords must be text and no more than 72 bytes'});
+  next();
+});
 
 const rawSecret = process.env.JWT_SECRET || process.env.JWT_SECRET_KEY;
 if (!rawSecret) {
@@ -17,7 +28,7 @@ const TOKEN_EXPIRY = process.env.JWT_EXPIRATION || '7d';
 
 // Default profile picture path
 const DEFAULT_PROFILE_PICTURE = '/uploads/default/avatar.png';
-const UPLOADS_ROOT = path.join(__dirname, '..', '..', 'uploads');
+const UPLOADS_ROOT = path.join(__dirname, '..', 'uploads');
 
 // Multer storage configuration for avatars
 const avatarStorage = multer.diskStorage({
@@ -33,7 +44,8 @@ const avatarStorage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     try {
-      cb(null, 'avatar' + path.extname(file.originalname).toLowerCase());
+      const extension = { 'image/png': '.png', 'image/jpeg': '.jpg', 'image/webp': '.webp' }[file.mimetype];
+      cb(null, 'avatar-' + randomUUID() + extension);
     } catch (e) {
       cb(e);
     }
@@ -52,18 +64,7 @@ const upload = multer({
 });
 
 // Validate token middleware
-function verifyToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(401).json({ message: 'No token provided' });
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = { id: decoded.id, email: decoded.email, name: decoded.name };
-    next();
-  } catch (e) {
-    return res.status(401).json({ message: 'Invalid or expired token' });
-  }
-}
+const verifyToken = require('../auth').requireUser;
 
 // Login endpoint
 router.post('/login', async (req, res) => {
@@ -71,15 +72,15 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Email and password required',
         code: 'VALIDATION_ERROR'
       });
     }
 
-    const result = await query('SELECT id, email, password_hash, name, profile_picture, created_at FROM users WHERE email=$1', [email]);
+    const result = await query('SELECT id, email, password_hash, name, profile_picture, created_at, token_version FROM users WHERE lower(email)=lower($1)', [email]);
     if (result.rowCount === 0) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         message: 'No account found with this email. Please register first.' ,
         code: 'EMAIL_NOT_REGISTERED'
       });
@@ -87,13 +88,13 @@ router.post('/login', async (req, res) => {
     const user = result.rows[0];
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Incorrect password. Please try again.' ,
         code: 'WRONG_PASSWORD'
       });
     }
 
-    const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, JWT_SECRET, { expiresIn: TOKEN_EXPIRY });
+    const token = jwt.sign({ id: user.id, email: user.email, name: user.name, version: user.token_version }, JWT_SECRET, { expiresIn: TOKEN_EXPIRY });
     return res.json({
       token,
       user: {
@@ -106,7 +107,7 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       message: 'Login failed. Please try again later.',
       code: 'SERVER_ERROR'
     });
@@ -119,7 +120,7 @@ router.post('/register', async (req, res) => {
     const { email, password, name } = req.body;
 
     if (!email || !password || !name) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Email, password, and name required',
         code: 'VALIDATION_ERROR'
       });
@@ -127,7 +128,7 @@ router.post('/register', async (req, res) => {
 
     // Password strength validation
     if (password.length < 8) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Password must be at least 8 characters long',
         code: 'WEAK_PASSWORD'
       });
@@ -135,21 +136,21 @@ router.post('/register', async (req, res) => {
 
     const hasNumberOrSpecial = /[\d!@#$%^&*(),.?":{}|<>]/.test(password);
     if (!hasNumberOrSpecial) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Password must contain at least one number or special character',
         code: 'WEAK_PASSWORD'
       });
     }
 
-    const exists = await query('SELECT 1 FROM users WHERE email=$1', [email]);
+    const exists = await query('SELECT 1 FROM users WHERE lower(email)=lower($1)', [email]);
     if (exists.rowCount > 0) {
-      return res.status(409).json({ 
+      return res.status(409).json({
         message: 'An account with this email already exists',
         code: 'EMAIL_EXISTS'
       });
     }
 
-    const userId = `user-${Date.now()}`;
+    const userId = `user-${randomUUID()}`;
     const passwordHash = await bcrypt.hash(password, 10);
     const insertResult = await query(
       'INSERT INTO users (id, email, password_hash, name) VALUES ($1, $2, $3, $4) RETURNING created_at',
@@ -169,7 +170,7 @@ router.post('/register', async (req, res) => {
     });
   } catch (error) {
     console.error('Register error:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       message: 'Registration failed. Please try again later.',
       code: 'SERVER_ERROR'
     });
@@ -216,13 +217,13 @@ router.put('/me', verifyToken, async (req, res) => {
 
     // Update user profile (address maps to location column in DB)
     await query(
-      `UPDATE users 
-       SET name = $1, 
-           phone = $2, 
-           location = $3, 
-           city = $4, 
-           province = $5, 
-           updated_at = CURRENT_TIMESTAMP 
+      `UPDATE users
+       SET name = $1,
+           phone = $2,
+           location = $3,
+           city = $4,
+           province = $5,
+           updated_at = CURRENT_TIMESTAMP
        WHERE id = $6`,
       [name.trim(), phone || null, address || null, city || null, province || null, userId]
     );
@@ -231,7 +232,7 @@ router.put('/me', verifyToken, async (req, res) => {
 
     // Fetch updated user data
     const result = await query('SELECT id, email, name, phone, location, city, province, profile_picture FROM users WHERE id=$1', [userId]);
-    
+
     if (result.rowCount === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -267,35 +268,35 @@ router.put('/change-password', verifyToken, async (req, res) => {
 
     // Validate input
     if (!currentPassword || !newPassword || !confirmPassword) {
-      return res.status(400).json({ 
-        message: 'Current password, new password, and confirmation are required' 
+      return res.status(400).json({
+        message: 'Current password, new password, and confirmation are required'
       });
     }
 
     // Validate new password length
-    if (newPassword.length < 6) {
-      return res.status(400).json({ 
-        message: 'New password must be at least 6 characters long' 
+    if (newPassword.length < 8 || !/[\d!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+      return res.status(400).json({
+        message: 'New password must be at least 8 characters and include a number or special character'
       });
     }
 
     // Check if new passwords match
     if (newPassword !== confirmPassword) {
-      return res.status(400).json({ 
-        message: 'New passwords do not match' 
+      return res.status(400).json({
+        message: 'New passwords do not match'
       });
     }
 
     // Check if new password is same as current
     if (currentPassword === newPassword) {
-      return res.status(400).json({ 
-        message: 'New password must be different from current password' 
+      return res.status(400).json({
+        message: 'New password must be different from current password'
       });
     }
 
     // Fetch current password hash
     const result = await query('SELECT password_hash FROM users WHERE id=$1', [userId]);
-    
+
     if (result.rowCount === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -304,10 +305,10 @@ router.put('/change-password', verifyToken, async (req, res) => {
 
     // Verify current password
     const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
-    
+
     if (!isCurrentPasswordValid) {
       console.log('Invalid current password for user:', userId);
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Current password is incorrect',
         code: 'INVALID_CURRENT_PASSWORD'
       });
@@ -318,15 +319,15 @@ router.put('/change-password', verifyToken, async (req, res) => {
 
     // Update password
     await query(
-      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      'UPDATE users SET password_hash = $1, token_version=token_version+1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
       [newPasswordHash, userId]
     );
 
     console.log('Password changed successfully for user:', userId);
 
-    return res.json({ 
-      success: true, 
-      message: 'Password changed successfully' 
+    return res.json({
+      success: true,
+      message: 'Password changed successfully'
     });
 
   } catch (error) {
@@ -340,26 +341,36 @@ router.post('/avatar', verifyToken, (req, res) => {
   upload.single('avatar')(req, res, async function (err) {
     // Ensure all responses are JSON
     res.setHeader('Content-Type', 'application/json');
-    
+
     if (err) {
       console.error('Multer error:', err);
       return res.status(400).json({ success: false, message: err.message, code: 'UPLOAD_ERROR' });
     }
-    
+
     // Check if file was uploaded
     if (!req.file) {
       console.error('No file uploaded');
       return res.status(400).json({ success: false, message: 'No file uploaded', code: 'NO_FILE' });
     }
-    
+
     try {
       const userId = req.user.id;
       const fileRelPath = `/uploads/avatars/${userId}/${req.file.filename}`;
+      const content = await fs.promises.readFile(req.file.path);
+      const valid = req.file.mimetype === 'image/png'
+        ? content.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))
+        : req.file.mimetype === 'image/jpeg'
+          ? content[0]===255 && content[1]===216 && content[2]===255
+          : content.subarray(0,4).toString()==='RIFF' && content.subarray(8,12).toString()==='WEBP';
+      if (!valid) {
+        await fs.promises.unlink(req.file.path);
+        return res.status(400).json({success:false,message:'The uploaded file is not a valid PNG, JPEG or WebP image.'});
+      }
       console.log('Avatar uploaded successfully:', fileRelPath);
-      
+
       await query('UPDATE users SET profile_picture=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2', [fileRelPath, userId]);
       console.log('Database updated with new avatar');
-      
+
       return res.json({ success: true, url: fileRelPath });
     } catch (e) {
       const userId = req.user?.id;
@@ -382,7 +393,7 @@ router.post('/avatar', verifyToken, (req, res) => {
 router.delete('/avatar', verifyToken, async (req, res) => {
   // Ensure JSON response
   res.setHeader('Content-Type', 'application/json');
-  
+
   try {
     const userId = req.user.id;
     const result = await query('SELECT profile_picture FROM users WHERE id=$1', [userId]);
@@ -406,55 +417,57 @@ router.delete('/avatar', verifyToken, async (req, res) => {
 // Request password reset endpoint
 router.post('/forgot-password', async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
-  
+
   try {
     const { email } = req.body;
     if (!email || !email.trim()) {
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         message: 'Email is required',
         code: 'VALIDATION_ERROR'
       });
     }
 
+    if (!process.env.SMTP_HOST || !process.env.SMTP_FROM || !process.env.APP_URL) {
+      return res.status(503).json({ message: 'Password reset email is not configured. Please contact support.' });
+    }
     // Check if user exists
-    const result = await query('SELECT id, email FROM users WHERE email=$1', [email.toLowerCase()]);
+    const result = await query('SELECT id, email FROM users WHERE lower(email)=lower($1)', [email.toLowerCase()]);
     if (result.rowCount === 0) {
       // Return success even if email doesn't exist (security best practice)
-      return res.json({ 
-        success: true, 
+      return res.json({
+        success: true,
         message: 'If an account exists with this email, a password reset link has been sent.',
         code: 'RESET_EMAIL_SENT'
       });
     }
 
     const user = result.rows[0];
-    
+
     // Generate reset token (valid for 1 hour)
     const resetToken = jwt.sign({ id: user.id, email: user.email, type: 'reset' }, JWT_SECRET, { expiresIn: '1h' });
-    
+
     // Store reset token as-is (plain JWT string) in database
     // No bcrypt hashing - we verify JWT signature instead
     const tokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
-    
+
     await query(
       'UPDATE users SET reset_token=$1, reset_token_expiry=$2 WHERE id=$3',
       [resetToken, tokenExpiry, user.id]
     );
 
-    console.log(`Password reset token generated for ${email}`);
-    
+    await require('../mail').sendResetEmail(user.email, resetToken);
+
     // TODO: In production, remove token from response and send via email only
-    return res.json({ 
-      success: true, 
+    return res.json({
+      success: true,
       message: 'If an account exists with this email, a password reset link has been sent.',
-      code: 'RESET_EMAIL_SENT',
-      token: resetToken  // TEMPORARY: Return token since email is stubbed. Remove in production.
+      code: 'RESET_EMAIL_SENT'
     });
   } catch (error) {
     console.error('Forgot password error:', error);
-    return res.status(500).json({ 
-      success: false, 
+    return res.status(500).json({
+      success: false,
       message: 'Error processing password reset request',
       code: 'SERVER_ERROR'
     });
@@ -464,14 +477,14 @@ router.post('/forgot-password', async (req, res) => {
 // Verify reset token endpoint
 router.post('/verify-reset-token', async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
-  
+
   try {
     const { token } = req.body;
-    
+
     // A2: Validate token is not empty or whitespace
     if (typeof token !== 'string' || token.trim().length === 0) {
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         message: 'Reset token is required',
         code: 'VALIDATION_ERROR'
       });
@@ -482,16 +495,16 @@ router.post('/verify-reset-token', async (req, res) => {
     try {
       decoded = jwt.verify(token, JWT_SECRET);
     } catch (e) {
-      return res.status(401).json({ 
-        success: false, 
+      return res.status(401).json({
+        success: false,
         message: 'Invalid or expired reset token',
         code: 'INVALID_TOKEN'
       });
     }
 
     if (decoded.type !== 'reset') {
-      return res.status(401).json({ 
-        success: false, 
+      return res.status(401).json({
+        success: false,
         message: 'Invalid reset token',
         code: 'INVALID_TOKEN'
       });
@@ -504,19 +517,19 @@ router.post('/verify-reset-token', async (req, res) => {
     );
 
     if (result.rowCount === 0) {
-      return res.status(404).json({ 
-        success: false, 
+      return res.status(404).json({
+        success: false,
         message: 'User not found',
         code: 'USER_NOT_FOUND'
       });
     }
 
     const user = result.rows[0];
-    
+
     // Verify token expiry
     if (!user.reset_token_expiry || new Date() > new Date(user.reset_token_expiry)) {
-      return res.status(401).json({ 
-        success: false, 
+      return res.status(401).json({
+        success: false,
         message: 'Reset token has expired',
         code: 'TOKEN_EXPIRED'
       });
@@ -524,23 +537,23 @@ router.post('/verify-reset-token', async (req, res) => {
 
     // A4: Compare plain token strings (no bcrypt)
     if (user.reset_token !== token) {
-      return res.status(401).json({ 
-        success: false, 
+      return res.status(401).json({
+        success: false,
         message: 'Invalid reset token',
         code: 'INVALID_TOKEN'
       });
     }
 
-    return res.json({ 
-      success: true, 
+    return res.json({
+      success: true,
       message: 'Reset token is valid',
       code: 'TOKEN_VALID',
       email: user.email
     });
   } catch (error) {
     console.error('Verify reset token error:', error);
-    return res.status(500).json({ 
-      success: false, 
+    return res.status(500).json({
+      success: false,
       message: 'Error verifying reset token',
       code: 'SERVER_ERROR'
     });
@@ -550,14 +563,14 @@ router.post('/verify-reset-token', async (req, res) => {
 // Reset password endpoint
 router.post('/reset-password', async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
-  
+
   try {
     const { token, newPassword } = req.body;
-    
+
     // A2: Validate token is not empty or whitespace
     if (typeof token !== 'string' || token.trim().length === 0) {
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         message: 'Reset token is required',
         code: 'VALIDATION_ERROR'
       });
@@ -565,16 +578,16 @@ router.post('/reset-password', async (req, res) => {
 
     // A3: Validate new password matches registration policy
     if (!newPassword) {
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         message: 'New password is required',
         code: 'VALIDATION_ERROR'
       });
     }
 
     if (newPassword.length < 8) {
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         message: 'Password must be at least 8 characters long and include a number or special character',
         code: 'PASSWORD_TOO_WEAK'
       });
@@ -582,8 +595,8 @@ router.post('/reset-password', async (req, res) => {
 
     const hasNumberOrSpecial = /[\d!@#$%^&*(),.?":{}|<>]/.test(newPassword);
     if (!hasNumberOrSpecial) {
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         message: 'Password must be at least 8 characters long and include a number or special character',
         code: 'PASSWORD_TOO_WEAK'
       });
@@ -594,16 +607,16 @@ router.post('/reset-password', async (req, res) => {
     try {
       decoded = jwt.verify(token, JWT_SECRET);
     } catch (e) {
-      return res.status(401).json({ 
-        success: false, 
+      return res.status(401).json({
+        success: false,
         message: 'Invalid or expired reset token',
         code: 'INVALID_TOKEN'
       });
     }
 
     if (decoded.type !== 'reset') {
-      return res.status(401).json({ 
-        success: false, 
+      return res.status(401).json({
+        success: false,
         message: 'Invalid reset token',
         code: 'INVALID_TOKEN'
       });
@@ -612,14 +625,14 @@ router.post('/reset-password', async (req, res) => {
     // A5: Use guarded update to prevent reuse and race conditions
     // Hash new password
     const passwordHash = await bcrypt.hash(newPassword, 10);
-    
+
     // Update password only if token matches, not expired, and not null (single-use)
     const updateResult = await query(
-      `UPDATE users 
-       SET password_hash=$1, reset_token=NULL, reset_token_expiry=NULL, updated_at=CURRENT_TIMESTAMP 
-       WHERE id=$2 
-         AND reset_token=$3 
-         AND reset_token_expiry > CURRENT_TIMESTAMP 
+      `UPDATE users
+       SET password_hash=$1, token_version=token_version+1, reset_token=NULL, reset_token_expiry=NULL, updated_at=CURRENT_TIMESTAMP
+       WHERE id=$2
+         AND reset_token=$3
+         AND reset_token_expiry > CURRENT_TIMESTAMP
          AND reset_token IS NOT NULL
        RETURNING id`,
       [passwordHash, decoded.id, token]
@@ -627,22 +640,22 @@ router.post('/reset-password', async (req, res) => {
 
     // If no rows were updated, token was invalid, expired, or already used
     if (updateResult.rowCount === 0) {
-      return res.status(401).json({ 
-        success: false, 
+      return res.status(401).json({
+        success: false,
         message: 'Invalid or already used reset token',
         code: 'INVALID_TOKEN'
       });
     }
 
-    return res.json({ 
-      success: true, 
+    return res.json({
+      success: true,
       message: 'Password reset successful. You can now login with your new password.',
       code: 'PASSWORD_RESET_SUCCESS'
     });
   } catch (error) {
     console.error('Reset password error:', error);
-    return res.status(500).json({ 
-      success: false, 
+    return res.status(500).json({
+      success: false,
       message: 'Error resetting password',
       code: 'SERVER_ERROR'
     });

@@ -35,7 +35,7 @@ describe('useGeolocation', () => {
       timestamp: Date.now(),
     }
 
-    mockGeolocation.getCurrentPosition.mockImplementation((success) => {
+    mockGeolocation.getCurrentPosition.mockImplementation((success: (position: unknown) => void) => {
       success(mockPosition)
     })
 
@@ -60,7 +60,7 @@ describe('useGeolocation', () => {
       message: 'User denied geolocation',
     }
 
-    mockGeolocation.getCurrentPosition.mockImplementation((success, error) => {
+    mockGeolocation.getCurrentPosition.mockImplementation((success: (position: unknown) => void, error: (error: unknown) => void) => {
       error(mockError)
     })
 
@@ -84,7 +84,7 @@ describe('useGeolocation', () => {
       message: 'Position unavailable',
     }
 
-    mockGeolocation.getCurrentPosition.mockImplementation((success, error) => {
+    mockGeolocation.getCurrentPosition.mockImplementation((success: (position: unknown) => void, error: (error: unknown) => void) => {
       error(mockError)
     })
 
@@ -102,7 +102,7 @@ describe('useGeolocation', () => {
       message: 'Timeout',
     }
 
-    mockGeolocation.getCurrentPosition.mockImplementation((success, error) => {
+    mockGeolocation.getCurrentPosition.mockImplementation((success: (position: unknown) => void, error: (error: unknown) => void) => {
       error(mockError)
     })
 

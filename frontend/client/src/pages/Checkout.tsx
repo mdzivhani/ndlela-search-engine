@@ -35,7 +35,7 @@ export default function Checkout() {
   }
 
   return (
-    <div style={{ background: '#f8f9fa', minHeight: '100vh', paddingY: '2rem' }}>
+    <div style={{ background: '#f8f9fa', minHeight: '100vh', paddingBlock: '2rem' }}>
       <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 1rem' }}>
         {/* Header */}
         <div style={{ marginBottom: '2rem' }}>
@@ -50,12 +50,12 @@ export default function Checkout() {
             {/* Order Items Section */}
             <section style={{ background: '#fff', borderRadius: '12px', padding: '2rem', marginBottom: '2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
               <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '1.5rem', color: '#111', borderBottom: '2px solid var(--primary-color)', paddingBottom: '1rem' }}>Order Items ({items.length})</h2>
-              
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {items.map((item, index) => (
-                  <div key={item.serviceId} style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
+                  <div key={item.serviceId} style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
                     alignItems: 'flex-start',
                     padding: '1rem',
                     backgroundColor: index % 2 === 0 ? '#f8f9fa' : '#fff',
@@ -84,7 +84,7 @@ export default function Checkout() {
             {/* D: Demo Checkout Note - replaced decorative billing form */}
             <section style={{ background: '#fff', borderRadius: '12px', padding: '2rem', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
               <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: '1.5rem', color: '#111', borderBottom: '2px solid var(--primary-color)', paddingBottom: '1rem' }}>Demo Checkout</h2>
-              
+
               <div style={{ padding: '1.5rem', backgroundColor: '#e8f5e9', borderRadius: '8px', borderLeft: '4px solid #4caf50' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
                   <div style={{ fontSize: '1.5rem' }}>ℹ️</div>
@@ -119,11 +119,11 @@ export default function Checkout() {
                 <span style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--primary-color)' }}>R{getTotalPrice().toLocaleString()}</span>
               </div>
 
-              <button 
+              <button
                 onClick={handleConfirmPurchase}
                 disabled={isProcessing}
-                style={{ 
-                  width: '100%', 
+                style={{
+                  width: '100%',
                   padding: '1rem',
                   fontSize: '1rem',
                   fontWeight: 700,

@@ -39,12 +39,12 @@ export async function apiFetch<T = unknown>(
   options: FetchOptions = {}
 ): Promise<T> {
   const { skipAuth, ...fetchOptions } = options
-  
+
   // Build headers (handle FormData uploads by not setting Content-Type)
   const isFormDataBody = fetchOptions.body instanceof FormData
-  const headers: HeadersInit = {
+  const headers: Record<string,string> = {
     ...(isFormDataBody ? {} : { 'Content-Type': 'application/json' }),
-    ...fetchOptions.headers,
+    ...Object.fromEntries(new Headers(fetchOptions.headers).entries()),
   }
 
   // Add auth token if not skipped
@@ -101,6 +101,7 @@ export async function apiFetch<T = unknown>(
     }
 
     // Handle successful response
+    if (response.status === 204) return undefined as T
     if (isJson) {
       return await response.json()
     } else {

@@ -14,13 +14,13 @@ namespace SA.Tourism.Business.Tests
         public async Task AddAndGetBusiness_WorksWithInMemoryDb()
         {
             var options = new DbContextOptionsBuilder<BusinessDbContext>()
-                .UseInMemoryDatabase(databaseName: "test_db")
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
             await using var db = new BusinessDbContext(options);
             var repo = new BusinessRepository(db);
 
-            var b = new Business { Name = "Test Inn", Type = "B&B", RegionCode = "GP" };
+            var b = new Models.Business { Name = "Test Inn", Type = "B&B", RegionCode = "GP" };
             var created = await repo.AddAsync(b);
 
             var fetched = await repo.GetAsync(created.Id);

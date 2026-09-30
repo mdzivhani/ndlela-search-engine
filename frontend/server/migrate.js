@@ -24,6 +24,7 @@ async function migrate() {
   } catch (e) {
     console.log('Reset token columns may already exist:', e.message);
   }
+  await require('./platform-migrate').migratePlatform();
 }
 
 module.exports = { migrate };

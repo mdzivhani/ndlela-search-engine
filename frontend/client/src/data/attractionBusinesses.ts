@@ -4,6 +4,7 @@
  */
 
 import { ExtendedBusiness } from './extendedMockBusinesses'
+import { attractionImages } from './touristAttractions'
 
 export const attractionBusinesses: ExtendedBusiness[] = [
   {
@@ -43,7 +44,7 @@ export const attractionBusinesses: ExtendedBusiness[] = [
       }
     ],
     amenities: ['Restaurant', 'Gift Shop', 'Free Wi-Fi', 'Wheelchair Accessible', 'Parking'],
-    gallery: ['https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=800&q=80'],
+    gallery: [attractionImages[9001]],
     hours: {
       monday: '8:00 AM - 6:00 PM',
       tuesday: '8:00 AM - 6:00 PM',
@@ -91,7 +92,7 @@ export const attractionBusinesses: ExtendedBusiness[] = [
       }
     ],
     amenities: ['Shopping', 'Restaurants', 'Free Wi-Fi', 'Parking', 'ATMs', 'Entertainment'],
-    gallery: ['https://images.unsplash.com/photo-1605640840605-14ac1855827b?w=800&q=80'],
+    gallery: [attractionImages[9002]],
     hours: {
       monday: '9:00 AM - 9:00 PM',
       tuesday: '9:00 AM - 9:00 PM',
@@ -131,7 +132,7 @@ export const attractionBusinesses: ExtendedBusiness[] = [
       }
     ],
     amenities: ['Museum', 'Gift Shop', 'Guided Tours', 'Café'],
-    gallery: ['https://images.unsplash.com/photo-1536152470836-b943b246224c?w=800&q=80'],
+    gallery: [attractionImages[9003]],
     hours: {
       monday: '9:00 AM - 3:00 PM',
       tuesday: '9:00 AM - 3:00 PM',
@@ -179,7 +180,7 @@ export const attractionBusinesses: ExtendedBusiness[] = [
       }
     ],
     amenities: ['4x4 Vehicles', 'Expert Guides', 'Meals Included', 'Binoculars Provided', 'Photography Opportunities'],
-    gallery: ['https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80'],
+    gallery: [attractionImages[9004]],
     hours: {
       monday: '5:00 AM - 6:00 PM',
       tuesday: '5:00 AM - 6:00 PM',
@@ -227,7 +228,7 @@ export const attractionBusinesses: ExtendedBusiness[] = [
       }
     ],
     amenities: ['Viewpoints', 'Boat Rides', 'Hiking Trails', 'Picnic Areas', 'Parking'],
-    gallery: ['https://images.unsplash.com/photo-1609137144813-7d9921338f24?w=800&q=80'],
+    gallery: [attractionImages[9005]],
     hours: {
       monday: '8:00 AM - 5:00 PM',
       tuesday: '8:00 AM - 5:00 PM',
@@ -256,26 +257,9 @@ export const attractionBusinesses: ExtendedBusiness[] = [
       email: 'info@goldreefcity.co.za',
       website: 'https://www.goldreefcity.co.za'
     },
-    services: [
-      {
-        id: 's9006-1',
-        name: 'Theme Park Ticket',
-        description: 'Full day access to all rides and attractions.',
-        price: 299,
-        duration: 'Full day',
-        category: 'Theme Park'
-      },
-      {
-        id: 's9006-2',
-        name: 'VIP Fast Track',
-        description: 'Skip the queues with priority access to all rides.',
-        price: 650,
-        duration: 'Full day',
-        category: 'Theme Park'
-      }
-    ],
+    services: [],
     amenities: ['Rides', 'Casino', 'Restaurants', 'Gift Shops', 'Parking', 'ATMs'],
-    gallery: ['https://images.unsplash.com/photo-1594818379496-da1e345b0ded?w=800&q=80'],
+    gallery: [attractionImages[9006]],
     hours: {
       monday: '9:00 AM - 5:00 PM',
       tuesday: '9:00 AM - 5:00 PM',
@@ -323,7 +307,7 @@ export const attractionBusinesses: ExtendedBusiness[] = [
       }
     ],
     amenities: ['Self-Drive', 'Guided Tours', 'Restaurant', 'Curio Shop', 'Picnic Areas', 'Parking'],
-    gallery: ['https://images.unsplash.com/photo-1535338454770-a8bdb3d6eb56?w=800&q=80'],
+    gallery: [attractionImages[9007]],
     hours: {
       monday: '8:30 AM - 5:00 PM',
       tuesday: '8:30 AM - 5:00 PM',

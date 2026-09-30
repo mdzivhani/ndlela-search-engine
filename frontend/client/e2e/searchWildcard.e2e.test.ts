@@ -1,120 +1,56 @@
-import { test, expect, Page } from '@playwright/test'
-
-test.describe('Search Page - No Wildcard Auto-Search E2E', () => {
-  test('should not make any search requests on initial /search load', async ({ page }) => {
-    // Track all network requests
-    const requests: string[] = []
-    page.on('request', request => {
-      if (request.url().includes('/api/search')) {
-        requests.push(request.url())
-      }
-    })
-
-    // Navigate to /search without any query params
-    await page.goto('http://localhost:8080/search')
-
-    // Wait 3 seconds to ensure no background requests fire
-    await page.waitForTimeout(3000)
-
-    // Verify NO search API calls were made
-    expect(requests).toHaveLength(0)
-
-    // Verify idle empty state is still visible
-    const emptyState = await page.locator('text=Start your adventure').isVisible()
-    expect(emptyState).toBeTruthy()
-
-    // Verify "Results for '*'" does NOT appear
-    const wildCardResults = await page.locator('text=Results for').isVisible()
-    expect(wildCardResults).toBeFalsy()
-  })
-
-  test('should only make search request when user explicitly searches', async ({ page }) => {
-    const requests: string[] = []
-    page.on('request', request => {
-      if (request.url().includes('/api/search')) {
-        requests.push(request.url())
-      }
-    })
-
-    await page.goto('http://localhost:8080/search')
-
-    // Initially, no requests should be made
-    expect(requests).toHaveLength(0)
-
-    // User performs explicit search via quick search pill (if available) or search input
-    // For now, just verify that navigating with query params DOES trigger search
-    await page.goto('http://localhost:8080/search?q=test')
-
-    // Wait for search to complete
-    await page.waitForTimeout(1000)
-
-    // Now search request should have been made
-    expect(requests.length).toBeGreaterThan(0)
-    expect(requests[0]).toContain('q=test')
-  })
-
-  test('should never show Results for "*" on initial load', async ({ page }) => {
-    await page.goto('http://localhost:8080/search')
-
-    // Wait to ensure any background searches would have completed
-    await page.waitForTimeout(2000)
-
-    // Search for the text "Results for *" which should not exist
-    const wildCardText = await page.locator('text=Results for "*"').count()
-    expect(wildCardText).toBe(0)
-
-    // Verify the page still shows the idle empty state
-    const startYourAdventure = await page.locator('text=Start your adventure').count()
-    expect(startYourAdventure).toBeGreaterThan(0)
-  })
-
-  test('should show different empty state when search returns no results', async ({ page }) => {
-    // First, perform a search with a query that returns no results
-    await page.goto('http://localhost:8080/search?q=xyz12345nonexistent')
-
-    // Wait for search to complete
-    await page.waitForSelector('text=No results found', { timeout: 5000 })
-
-    // Verify "No results found" message appears (not the idle "Start your adventure")
-    const noResultsText = await page.locator('text=No results found').isVisible()
-    expect(noResultsText).toBeTruthy()
-
-    // Go back to idle state (no query params)
-    await page.goto('http://localhost:8080/search')
-
-    // Wait for idle state to appear
-    await page.waitForSelector('text=Start your adventure', { timeout: 5000 })
-
-    // Verify "Start your adventure" is visible again
-    const startAdventure = await page.locator('text=Start your adventure').isVisible()
-    expect(startAdventure).toBeTruthy()
-
-    // Verify "No results found" is NOT visible
-    const stillShowingNoResults = await page.locator('text=No results found').count()
-    expect(stillShowingNoResults).toBe(0)
-  })
-
-  test('should handle filter changes without auto-searching', async ({ page }) => {
-    const requests: string[] = []
-    page.on('request', request => {
-      if (request.url().includes('/api/search')) {
-        requests.push(request.url())
-      }
-    })
-
-    await page.goto('http://localhost:8080/search')
-
-    // Wait for page to load
-    await page.waitForTimeout(1000)
-
-    // Try to interact with filter panel (if available)
-    const filterPanel = await page.locator('[data-testid="filter-panel"]').count()
-
-    // No search request should have been made yet
-    expect(requests).toHaveLength(0)
-
-    // Empty state should still be visible
-    const emptyStateVisible = await page.locator('text=Start your adventure').isVisible()
-    expect(emptyStateVisible).toBeTruthy()
-  })
-})
+import { test, expect } from "@playwright/test";
+test("public discovery loads a catalogue and persists a guest favourite", async ({
+  page,
+}) => {
+  await page.goto("/search");
+  await expect(
+    page.getByRole("heading", { name: "Find your next favourite place." }),
+  ).toBeVisible();
+  await expect(page.locator(".place-card").first()).toBeVisible();
+  const name = await page.locator(".place-card h3").first().innerText();
+  await page.locator(".save-place").first().click();
+  await page.goto("/favourites");
+  await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { name, exact: true })).toBeVisible();
+});
+test("destination and price filters survive a reload", async ({ page }) => {
+  await page.goto("/search?q=Cape+Town&maxPrice=500");
+  await expect(page.locator(".place-card").first()).toBeVisible();
+  await expect(page.getByLabel("Destination or experience")).toHaveValue(
+    "Cape Town",
+  );
+  await page.getByRole("button", { name: /Filters/ }).click();
+  await expect(page.getByLabel("Maximum price (R)")).toHaveValue("500");
+  await page.reload();
+  await expect(page.getByLabel("Destination or experience")).toHaveValue(
+    "Cape Town",
+  );
+});
+test("planner returns a budgeted itinerary", async ({ page }) => {
+  await page.goto("/planner");
+  await page.getByLabel("Destination", { exact: true }).fill("Cape Town");
+  await page.getByRole("button", { name: "Build my itinerary" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Cape Town getaway" }),
+  ).toBeVisible();
+  await expect(page.locator(".itinerary-stop").first()).toBeVisible();
+  await expect(page.getByText(/Prices are estimates per person/)).toBeVisible();
+});
+test("mobile pages fit the viewport and navigation remains available", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const route of ["/", "/search", "/planner", "/business/1"]) {
+    await page.goto(route);
+    await expect(page.locator("h1")).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBeTruthy();
+    await expect(
+      page.getByRole("navigation", { name: "Mobile navigation" }),
+    ).toBeVisible();
+  }
+});

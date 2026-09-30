@@ -32,7 +32,7 @@ describe('Auth flows error handling', () => {
     fireEvent.click(screen.getByRole('button', { name: /Login/ }))
 
     await waitFor(() => {
-      expect(screen.getByText(/This email is not registered/)).toBeInTheDocument()
+      expect(screen.getByText(/No account found with this email/)).toBeInTheDocument()
     })
   })
 
@@ -52,7 +52,7 @@ describe('Auth flows error handling', () => {
     fireEvent.click(screen.getByRole('button', { name: /Create Account/ }))
 
     await waitFor(() => {
-      expect(screen.getByText(/Password/)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Create Account/ })).toBeDisabled()
     })
   })
 
