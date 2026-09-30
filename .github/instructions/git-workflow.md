@@ -4,7 +4,8 @@ This project follows a simple, safe workflow that protects `dev` and `main` and 
 
 ## Branching Rules
 - Do NOT push directly to `dev` or `main`.
-- Always create a branch from `dev` for any change.
+- Create feature branches from the active remote integration branch: use `origin/dev` when it exists; otherwise use the protected default branch (currently `origin/main`). A local branch without a remote-tracking branch does not count as an active integration branch.
+- Follow the hosting repository's branch protection rules, including required pull requests, reviews, and status checks.
 - Allowed naming patterns:
   - `feature/<short-title-description>` for new functionality
   - `bugfix/<short-title-description>` for fixes
@@ -12,11 +13,14 @@ This project follows a simple, safe workflow that protects `dev` and `main` and 
 - Use kebab-case for `<short-title-description>` (e.g., `feature/db-auth-jwt`).
 
 ## Standard Flow
-1. Sync with remote `dev`:
+1. Fetch and identify the active remote integration branch. Use `origin/dev` when it exists; otherwise use the protected default branch:
    ```bash
-   git checkout dev
-   git pull origin dev
+   git fetch origin
+   git branch -r
+   git checkout main
+   git pull origin main
    ```
+   Replace `main` with `dev` when `origin/dev` exists and is the configured integration branch.
 2. Create a branch:
    ```bash
    git checkout -b feature/db-auth-jwt
@@ -26,12 +30,12 @@ This project follows a simple, safe workflow that protects `dev` and `main` and 
    git add -A
    git commit -m "feat(auth): add database-backed auth with JWT"
    ```
-4. Push branch and create PR → `dev`:
+4. Push the feature branch and create a PR to the active remote integration branch (`dev` when available, otherwise the protected default branch):
    ```bash
    git push -u origin feature/db-auth-jwt
-   # Open PR: base = dev, compare = feature/db-auth-jwt
+   # Open PR: base = active integration branch, compare = feature/db-auth-jwt
    ```
-5. After merge to `dev`, create a release PR from `dev` → `main`.
+5. When `dev` is configured, merge feature PRs to `dev`, then create a release PR from `dev` to `main`. When no remote `dev` exists, feature PRs target the protected default branch directly.
    - Compare link: `https://github.com/<owner>/<repo>/compare/main...dev?expand=1`
 
 ## Pull Request Requirements
